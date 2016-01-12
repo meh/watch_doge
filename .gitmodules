@@ -1,0 +1,6 @@
+[submodule "jni/vendor/pcap"]
+	path = jni/vendor/pcap
+	url = https://github.com/android/platform_external_libpcap
+[submodule "jni/vendor/msgpack"]
+	path = jni/vendor/msgpack
+	url = https://github.com/msgpack/msgpack-c.git

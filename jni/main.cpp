@@ -1,0 +1,8 @@
+#include <msgpack.hpp>
+#include <pcap.h>
+
+int
+main (int argc, char* argv[])
+{
+	return 0;
+}
