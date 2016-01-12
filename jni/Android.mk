@@ -4,7 +4,7 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE := watchdoge
 LOCAL_SRC_FILES := main.cpp
-LOCAL_CPPFLAGS := -std=c++11 -fexceptions
+LOCAL_CPPFLAGS := -std=c++11 -fexceptions -frtti
 LOCAL_LDLIBS := -llog
 
 LOCAL_C_INCLUDES += jni/vendor/pcap

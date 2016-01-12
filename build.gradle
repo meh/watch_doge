@@ -21,11 +21,16 @@ android {
 		versionName "1.0"
 
 		minSdkVersion 19
-		targetSdkVersion 19
+		targetSdkVersion 21
 	}
 
 	lintOptions {
 		abortOnError false
+	}
+
+	packagingOptions {
+		exclude 'META-INF/NOTICE'
+		exclude 'META-INF/LICENSE'
 	}
 }
 
@@ -34,6 +39,27 @@ repositories {
 }
 
 dependencies {
-	compile 'com.android.support:appcompat-v7:19.1.0'
+	compile 'com.android.support:appcompat-v7:19.0.1'
 	compile 'org.msgpack:jackson-dataformat-msgpack:0.8.1'
 }
+
+task packageExecutable(type: Copy){
+	from 'libs/armeabi/watchdoge'
+	into 'src/main/res/raw/'
+}
+
+task ndkBuild(type: Exec, description: "Task to run ndk-build") {
+	commandLine 'ndk-build'
+}
+
+task ndkClean(type: Exec, description: "Task to run ndk-build clean"){
+	commandLine 'ndk-build', 'clean'
+
+	doLast {
+		delete 'src/main/res/raw/'
+	}
+}
+
+packageExecutable.dependsOn 'ndkBuild'
+tasks.withType(JavaCompile) { compileTask -> compileTask.dependsOn packageExecutable }
+clean.dependsOn 'ndkClean'
