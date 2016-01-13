@@ -4,3 +4,9 @@
 [submodule "jni/vendor/msgpack"]
 	path = jni/vendor/msgpack
 	url = https://github.com/msgpack/msgpack-c.git
+[submodule "jni/vendor/optional"]
+	path = jni/vendor/optional
+	url = https://github.com/akrzemi1/Optional.git
+[submodule "jni/vendor/queue"]
+	path = jni/vendor/queue
+	url = https://github.com/cameron314/readerwriterqueue.git

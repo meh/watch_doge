@@ -1,0 +1,8 @@
+#include <iostream>
+#include <functional>
+
+#include <msgpack.hpp>
+
+namespace wd {
+	void send(int id, std::function<void(msgpack::packer<std::ostream>&)> body);
+}

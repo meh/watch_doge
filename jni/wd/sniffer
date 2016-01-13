@@ -1,0 +1,51 @@
+#include <thread>
+#include <string>
+#include <memory>
+
+#include <optional.hpp>
+#include <errno.h>
+#include <readerwriterqueue.h>
+
+namespace wd {
+	using std::string;
+	using std::experimental::optional;
+	using std::thread;
+	using std::shared_ptr;
+
+	template<typename T, size_t MAX_BLOCK_SIZE = 512>
+	using queue = typename moodycamel::BlockingReaderWriterQueue<T, MAX_BLOCK_SIZE>;
+
+	class sniffer {
+	public:
+		struct command {
+			enum Type {
+				idle,
+				start,
+				stop,
+				filter,
+			};
+
+			union Data {
+				optional<string>* filter;
+			};
+
+			Type type;
+			Data data;
+		};
+
+	public:
+		sniffer(int id, string device);
+		~sniffer();
+
+		void start();
+		void filter(optional<string> flt);
+		void stop();
+
+	private:
+		int    _id;
+		string _device;
+
+		shared_ptr<queue<command>> _queue;
+		thread                     _thread;
+	};
+}

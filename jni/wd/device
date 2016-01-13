@@ -1,0 +1,11 @@
+#include <string>
+#include <optional.hpp>
+
+namespace wd {
+	namespace device {
+		using std::experimental::optional;
+		using std::string;
+
+		optional<string> find(string ip);
+	}
+}
