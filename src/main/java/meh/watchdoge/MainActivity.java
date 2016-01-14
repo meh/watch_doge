@@ -1,5 +1,7 @@
 package meh.watchdoge;
 
+import android.util.Log;
+
 import android.app.Activity;
 import android.os.Bundle;
 

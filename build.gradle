@@ -21,7 +21,7 @@ android {
 		versionName "1.0"
 
 		minSdkVersion 19
-		targetSdkVersion 21
+		targetSdkVersion 19
 	}
 
 	lintOptions {
@@ -32,6 +32,13 @@ android {
 		exclude 'META-INF/NOTICE'
 		exclude 'META-INF/LICENSE'
 	}
+
+	buildTypes {
+		release {
+			minifyEnabled true
+			proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard/guava.pro', 'proguard/jackson.pro'
+		}
+	}
 }
 
 repositories {
@@ -40,11 +47,12 @@ repositories {
 
 dependencies {
 	compile 'com.android.support:appcompat-v7:19.0.1'
+	compile 'com.google.guava:guava:19.0'
 	compile 'org.msgpack:jackson-dataformat-msgpack:0.8.1'
 }
 
 task packageExecutable(type: Copy){
-	from 'libs/armeabi/watchdoge'
+	from 'libs/armeabi/backend'
 	into 'src/main/res/raw/'
 }
 
@@ -61,5 +69,5 @@ task ndkClean(type: Exec, description: "Task to run ndk-build clean"){
 }
 
 packageExecutable.dependsOn 'ndkBuild'
-tasks.withType(JavaCompile) { compileTask -> compileTask.dependsOn packageExecutable }
+preBuild.dependsOn 'packageExecutable'
 clean.dependsOn 'ndkClean'

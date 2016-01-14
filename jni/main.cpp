@@ -1,4 +1,5 @@
 #include <unistd.h>
+#include <stdio.h>
 
 #include <string>
 #include <iostream>
@@ -27,6 +28,9 @@ main (int argc, char* argv[])
 	test.start();
 	test.filter(optional<std::string>("icmp"));
 #endif
+
+	std::cout.write("\x02", 1);
+	std::cout.flush();
 
 	msgpack::unpacker unpacker;
 
