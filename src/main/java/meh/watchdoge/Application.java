@@ -19,13 +19,13 @@ public class Application extends android.app.Application {
 	public void onCreate() {
 		super.onCreate();
 
-		Context context = this.getApplicationContext();
+		Context context = getApplicationContext();
 
 		try {
 			File installed = getFileStreamPath("backend");
-			long updated   = context.getPackageManager().
-				getPackageInfo(context.getPackageName(), 0).
-				lastUpdateTime;
+			long updated   = context.getPackageManager()
+				.getPackageInfo(context.getPackageName(), 0)
+				.lastUpdateTime;
 
 			if (!installed.exists() || installed.lastModified() < updated) {
 				InputStream      input  = context.getResources().openRawResource(R.raw.backend);

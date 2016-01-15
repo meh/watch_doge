@@ -1,9 +1,7 @@
-#include <unistd.h>
-#include <stdio.h>
+#include <android/log.h>
 
+#include <unistd.h>
 #include <string>
-#include <iostream>
-#include <sstream>
 #include <thread>
 
 #include <msgpack.hpp>
@@ -14,6 +12,13 @@
 #include <wd/sniffer>
 
 using std::experimental::optional;
+
+#define NEXT() ({          \
+	unpacker.next(unpacked); \
+	unpacked.get();          \
+})
+
+const size_t CHUNK = 256;
 
 int
 main (int argc, char* argv[])
@@ -29,19 +34,21 @@ main (int argc, char* argv[])
 	test.filter(optional<std::string>("icmp"));
 #endif
 
-	std::cout.write("\x02", 1);
-	std::cout.flush();
-
 	msgpack::unpacker unpacker;
+	msgpack::unpacked unpacked;
 
 	while (true) {
-		unpacker.reserve_buffer(256);
-		unpacker.buffer_consumed(std::cin.readsome(unpacker.buffer(), 256));
+		if (unpacker.nonparsed_size() == 0) {
+			size_t consumed = CHUNK;
 
-		msgpack::unpacked result;
-		while (unpacker.next(result)) {
-			msgpack::object message(result.get());
+			while (consumed == CHUNK) {
+				unpacker.reserve_buffer(CHUNK);
+				consumed = read(0, unpacker.buffer(), CHUNK);
+				unpacker.buffer_consumed(consumed);
+			}
 		}
+
+		int id = NEXT().as<int>();
 	}
 
 	return 0;
