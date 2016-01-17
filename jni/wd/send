@@ -2,7 +2,9 @@
 #include <functional>
 
 #include <msgpack.hpp>
+#include <wd/commands>
 
 namespace wd {
-	void send(int id, std::function<void(msgpack::packer<std::ostream>&)> body);
+	void send(std::function<void(msgpack::packer<std::ostream>&)> body);
+	void response(int type, int request, std::function<void(msgpack::packer<std::ostream>&)> body);
 }

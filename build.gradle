@@ -5,10 +5,12 @@ buildscript {
 	
 	dependencies {
 		classpath 'com.android.tools.build:gradle:1.5.0'
+		classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.0.0-beta-4584'
 	}
 }
 
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
 
 android {
 	compileSdkVersion 19
@@ -36,9 +38,7 @@ android {
 	buildTypes {
 		release {
 			minifyEnabled true
-			proguardFiles getDefaultProguardFile('proguard-android.txt'),
-				'proguard/guava.pro',
-				'proguard/jackson.pro'
+			proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'rules.pro'
 		}
 	}
 }
@@ -49,7 +49,12 @@ repositories {
 
 dependencies {
 	compile 'com.android.support:appcompat-v7:19.0.1'
-	compile 'com.google.guava:guava:19.0'
+	compile 'org.jetbrains.kotlin:kotlin-stdlib:1.0.0-beta-4584'
+
+	compile 'org.jetbrains.anko:anko-sdk19:0.8'
+	compile 'org.jetbrains.anko:anko-support-v4:0.8'
+	compile 'org.jetbrains.anko:anko-appcompat-v7:0.8'
+
 	compile 'org.msgpack:msgpack-core:0.8.1'
 }
 

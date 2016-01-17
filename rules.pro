@@ -1,0 +1,3 @@
+-dontwarn kotlin.**
+-dontwarn android.support.**
+-dontwarn org.msgpack.**

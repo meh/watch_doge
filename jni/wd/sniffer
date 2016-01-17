@@ -18,18 +18,12 @@ namespace wd {
 	class sniffer {
 	public:
 		struct command {
-			enum Type {
-				idle,
-				start,
-				stop,
-				filter,
-			};
-
 			union Data {
 				optional<string>* filter;
 			};
 
-			Type type;
+			int  request;
+			int  type;
 			Data data;
 		};
 
@@ -37,9 +31,9 @@ namespace wd {
 		sniffer(int id, string device);
 		~sniffer();
 
-		void start();
-		void filter(optional<string> flt);
-		void stop();
+		void start(int request);
+		void filter(int request, optional<string> flt);
+		void stop(int request);
 
 	private:
 		int    _id;

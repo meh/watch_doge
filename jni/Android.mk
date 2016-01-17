@@ -4,7 +4,7 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE    := backend
 LOCAL_SRC_FILES := main.cpp wd/send.cpp wd/device.cpp wd/sniffer.cpp
-LOCAL_CPPFLAGS  := -std=c++11 -fdiagnostics-color=always -fexceptions -frtti
+LOCAL_CPPFLAGS  := -std=gnu++1y -fdiagnostics-color=always -fexceptions -frtti
 LOCAL_LDLIBS    := -llog
 
 LOCAL_C_INCLUDES += jni/vendor/pcap

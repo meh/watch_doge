@@ -21,21 +21,27 @@ namespace wd {
 	}
 
 	static
-	pcap_t*
+	optional<std::string>
 	_filter(pcap_t* session, optional<string> filter, bpf_u_int32 net)
 	{
 		struct bpf_program filt;
+		int                result;
 
 		if (filter) {
-			assert(pcap_compile(session, &filt, filter->c_str(), 0, net) >= 0);
+			result = pcap_compile(session, &filt, filter->c_str(), 0, net);
 		}
 		else {
-			assert(pcap_compile(session, &filt, "", 0, net) >= 0);
+			result = pcap_compile(session, &filt, "", 0, net);
 		}
 
-		assert(pcap_setfilter(session, &filt) >= 0);
+		if (result < 0) {
+			return optional<std::string>(pcap_geterr(session));
+		}
+		else {
+			assert(pcap_setfilter(session, &filt) >= 0);
 
-		return session;
+			return optional<std::string>();
+		}
 	}
 
 	static
@@ -51,8 +57,6 @@ namespace wd {
 		pcap_t*     session = NULL;
 		bpf_u_int32 netmask = 0;
 
-		struct pcap_pkthdr header;
-		const  u_char*     packet;
 		sniffer::command   command;
 
 		while (true) {
@@ -61,46 +65,79 @@ namespace wd {
 			}
 			else {
 				if (!queue->try_dequeue(command)) {
-					command.type = sniffer::command::idle;
+					command.type = -1;
 				}
 			}
 
+			if (command.type == command::sniffer::START && session != NULL) {
+				wd::response(command::CONTROL, command.request, [](auto& packer) {
+					packer.pack(command::sniffer::error::ALREADY_STARTED);
+				});
+
+				continue;
+			}
+			
+			if (command.type != command::sniffer::START && session == NULL) {
+				wd::response(command::CONTROL, command.request, [](auto& packer) {
+					packer.pack(command::sniffer::error::NOT_STARTED);
+				});
+
+				continue;
+			}
+
 			switch (command.type) {
-				case sniffer::command::Type::start:
-					if (session == NULL) {
-						auto started = _start(device);
+				case command::sniffer::START: {
+					auto started = _start(device);
 
-						session = std::get<0>(started);
-						netmask = std::get<1>(started);
-					}
+					session = std::get<0>(started);
+					netmask = std::get<1>(started);
 
-					break;
-
-				case sniffer::command::Type::stop:
-					if (session != NULL) {
-						_stop(session);
-					}
+					wd::response(command::CONTROL, command.request, [](auto& packer) {
+						packer.pack(command::SUCCESS);
+					});
 
 					break;
+				}
 
-				case sniffer::command::Type::filter:
-					if (session != NULL) {
-						_filter(session, *command.data.filter, netmask);
-						delete command.data.filter;
-					}
+				case command::sniffer::STOP: {
+					_stop(session);
+
+					wd::response(command::CONTROL, command.request, [](auto& packer) {
+						packer.pack(command::SUCCESS);
+					});
 
 					break;
+				}
 
-				case sniffer::command::Type::idle:
-					if (session != NULL) {
-						packet = pcap_next(session, &header);
+				case command::sniffer::FILTER: {
+					auto error = _filter(session, *command.data.filter, netmask);
+					delete command.data.filter;
 
-						wd::send(id, [](msgpack::packer<std::ostream>& packer) {
-							packer.pack_true();
+					if (error) {
+						wd::response(command::CONTROL, command.request, [&](auto& packer) {
+							packer.pack(command::sniffer::error::INVALID_FILTER);
+							packer.pack(*error);
+						});
+					}
+					else {
+						wd::response(command::CONTROL, command.request, [&](auto& packer) {
+							packer.pack(command::SUCCESS);
 						});
 					}
 
 					break;
+				}
+
+				default: {
+					struct pcap_pkthdr header;
+					const  u_char*     packet = pcap_next(session, &header);
+
+					wd::response(command::SNIFFER, id, [&](auto& packer) {
+						packer.pack_int(header.len);
+					});
+
+					break;
+				}
 			}
 		}
 
@@ -116,33 +153,39 @@ namespace wd {
 
 	sniffer::~sniffer()
 	{
-		stop();
-	}
-
-	void
-	sniffer::start()
-	{
 		_queue->enqueue(sniffer::command {
-			.type = sniffer::command::Type::start
+			.request = 0,
+			.type    = wd::command::sniffer::DESTROY,
 		});
 	}
 
 	void
-	sniffer::filter(optional<string> flt)
+	sniffer::start(int request)
 	{
 		_queue->enqueue(sniffer::command {
-			.type = sniffer::command::Type::filter,
-			.data = {
+			.request = request,
+			.type    = wd::command::sniffer::START,
+		});
+	}
+
+	void
+	sniffer::filter(int request, optional<string> flt)
+	{
+		_queue->enqueue(sniffer::command {
+			.request = request,
+			.type    = wd::command::sniffer::FILTER,
+			.data    = {
 				.filter = new optional<string>(flt)
 			}
 		});
 	}
 
 	void
-	sniffer::stop()
+	sniffer::stop(int request)
 	{
 		_queue->enqueue(sniffer::command {
-			.type = sniffer::command::Type::stop
+			.request = request,
+			.type    = wd::command::sniffer::STOP,
 		});
 	}
 }

@@ -7,15 +7,24 @@ namespace wd {
 	std::mutex locker;
 
 	void
-	send(int id, std::function<void(msgpack::packer<std::ostream>&)> body)
+	send(std::function<void(msgpack::packer<std::ostream>&)> body)
 	{
 		locker.lock();
 
 		msgpack::packer<std::ostream> packer(std::cout);
-		packer.pack_int(id);
 		body(packer);
 
 		std::cout.flush();
 		locker.unlock();
+	}
+
+	void
+	response(int type, int request, std::function<void(msgpack::packer<std::ostream>&)> body)
+	{
+		send([&](auto& packer) {
+			packer.pack_int(type);
+			packer.pack_int(request);
+			body(packer);
+		});
 	}
 }

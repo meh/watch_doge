@@ -17,7 +17,7 @@
 			</intent-filter>
 		</activity>
 
-		<service android:name=".backend.Service"
+		<service android:name=".backend.Backend"
 		         android:exported="false"
 		         android:process=":backend">
 		</service>

@@ -1,0 +1,14 @@
+#include <android/log.h>
+
+#define LOG(level, format, ...) \
+	__android_log_print(level, "B", __FILE__ ": " format, __VA_ARGS__)
+
+#define LOG_UNKNOWN ANDROID_LOG_UNKNOWN
+#define LOG_DEFAULT ANDROID_LOG_DEFAULT
+#define LOG_VERBOSE ANDROID_LOG_VERBOSE
+#define LOG_DEBUG   ANDROID_LOG_DEBUG
+#define LOG_INFO    ANDROID_LOG_INFO
+#define LOG_WARN    ANDROID_LOG_WARN
+#define LOG_ERROR   ANDROID_LOG_ERROR
+#define LOG_FATAL   ANDROID_LOG_FATAL
+#define LOG_SILENT  ANDROID_LOG_SILENT
