@@ -23,6 +23,14 @@ Design
    +---------+     +---------+
 ```
 
-Input Protocol
---------------
-+ `command: int`
+Protocol
+--------
+Each request starts:
+
+* `id: int`:   the request id which will be used in the response
+* `type: int`: the family type of the command `CONTROL` or `SNIFFER`
+
+Each response starts with:
+
+* `type: int`: the family type of the command `CONTROL` or `SNIFFER`
+* `id: int`:   the request id in case of `CONTROL` and the sniffer id in case of `SNIFFER`

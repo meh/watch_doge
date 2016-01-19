@@ -1,4 +1,4 @@
-package meh.watchdoge.backend;
+package meh.watchdoge;
 
 final public class Command {
 	public static final int SUCCESS = 0;
@@ -6,6 +6,10 @@ final public class Command {
 
 	public static final int CONTROL = 0;
 	public static final int SNIFFER = 1;
+
+	final static public class Control {
+		public static final int PING = 0;
+	}
 
 	final static public class Sniffer {
 		final static public class Error {
@@ -21,9 +25,10 @@ final public class Command {
 		public static final int CREATE  = 0;
 		public static final int DESTROY = 1;
 		public static final int LIST    = 2;
+		public static final int LISTEN  = 3;
 
-		public static final int START   = 3;
-		public static final int STOP    = 4;
-		public static final int FILTER  = 5;
+		public static final int START   = 4;
+		public static final int STOP    = 5;
+		public static final int FILTER  = 6;
 	}
 }

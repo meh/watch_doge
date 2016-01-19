@@ -45,9 +45,17 @@ main (int argc, char* argv[])
 		}
 
 		int request = NEXT().as<int>();
-		int command = NEXT().as<int>();
+		int family  = NEXT().as<int>();
 
-		switch (command) {
+		switch (family) {
+			case wd::command::CONTROL: {
+				int command = NEXT().as<int>();
+
+				LOG(LOG_ERROR, "CONTROL: command=%d", command);
+
+				break;
+			}
+
 			case wd::command::SNIFFER: {
 				int command = NEXT().as<int>();
 
@@ -65,14 +73,13 @@ main (int argc, char* argv[])
 							continue;
 						}
 
-						LOG(LOG_DEBUG, "id=%d device=%s", id, device->c_str());
-
 						sniffers.emplace(std::piecewise_construct,
 							std::make_tuple(id),
 							std::make_tuple(id, *device));
 
-						wd::response(wd::command::CONTROL, request, [](auto& packer) {
+						wd::response(wd::command::CONTROL, request, [&](auto& packer) {
 							packer.pack(wd::command::SUCCESS);
+							packer.pack(id);
 						});
 
 						break;
@@ -116,7 +123,9 @@ main (int argc, char* argv[])
 						break;
 					}
 				}
-			} break;
+
+				break;
+			}
 		}
 	}
 

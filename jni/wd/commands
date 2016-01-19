@@ -20,10 +20,11 @@ namespace wd {
 			const int CREATE  = 0;
 			const int DESTROY = 1;
 			const int LIST    = 2;
+			const int LISTEN  = 3;
 
-			const int START   = 3;
-			const int STOP    = 4;
-			const int FILTER  = 5;
+			const int START   = 4;
+			const int STOP    = 5;
+			const int FILTER  = 6;
 		}
 	}
 }

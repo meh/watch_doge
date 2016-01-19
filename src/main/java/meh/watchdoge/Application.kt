@@ -4,7 +4,6 @@ import android.util.Log;
 import org.jetbrains.anko.*;
 
 import meh.watchdoge.backend.Backend;
-import android.app.Application as Super;
 
 import android.content.Context;
 import android.content.Intent;
@@ -17,15 +16,15 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import android.content.pm.PackageManager.NameNotFoundException;
 
-public class Application(): Super() {
+public class Application(): android.app.Application() {
 	override fun onCreate() {
 		super.onCreate();
 
-		var context = getApplicationContext();
+		val context = getApplicationContext();
 
 		try {
-			var installed = getFileStreamPath("backend");
-			var updated   = context.getPackageManager()
+			val installed = getFileStreamPath("backend");
+			val updated   = context.getPackageManager()
 				.getPackageInfo(context.getPackageName(), 0)
 				.lastUpdateTime;
 
