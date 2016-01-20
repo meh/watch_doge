@@ -1,4 +1,5 @@
 #include <unistd.h>
+#include <stdint.h>
 #include <string>
 #include <thread>
 #include <map>
@@ -44,12 +45,12 @@ main (int argc, char* argv[])
 			}
 		}
 
-		int request = NEXT().as<int>();
-		int family  = NEXT().as<int>();
+		int request = NEXT().as<int32_t>();
+		int family  = NEXT().as<uint8_t>();
 
 		switch (family) {
 			case wd::command::CONTROL: {
-				int command = NEXT().as<int>();
+				int command = NEXT().as<uint8_t>();
 
 				LOG(LOG_ERROR, "CONTROL: command=%d", command);
 
@@ -57,7 +58,7 @@ main (int argc, char* argv[])
 			}
 
 			case wd::command::SNIFFER: {
-				int command = NEXT().as<int>();
+				int command = NEXT().as<uint8_t>();
 
 				switch (command) {
 					case wd::command::sniffer::CREATE: {
@@ -86,7 +87,7 @@ main (int argc, char* argv[])
 					}
 
 					case wd::command::sniffer::START: {
-						auto id = NEXT().as<int>();
+						auto id = NEXT().as<int32_t>();
 
 						if (sniffers.find(id) == sniffers.end()) {
 							wd::response(wd::command::CONTROL, request, [](auto& packer) {
@@ -102,7 +103,7 @@ main (int argc, char* argv[])
 					}
 
 					case wd::command::sniffer::FILTER: {
-						auto id      = NEXT().as<int>();
+						auto id      = NEXT().as<int32_t>();
 						auto filter  = NEXT();
 
 						if (sniffers.find(id) == sniffers.end()) {

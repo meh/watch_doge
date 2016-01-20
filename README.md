@@ -25,12 +25,27 @@ Design
 
 Protocol
 --------
-Each request starts:
 
-* `id: int`:   the request id which will be used in the response
-* `type: int`: the family type of the command `CONTROL` or `SNIFFER`
+### Request
 
-Each response starts with:
+* `id:      u32`: the request id which will be used in the response
+* `family:   u8`:  the family of the command `CONTROL` or `SNIFFER`
+* `command:  u8`:  the command id
 
-* `type: int`: the family type of the command `CONTROL` or `SNIFFER`
-* `id: int`:   the request id in case of `CONTROL` and the sniffer id in case of `SNIFFER`
+Additional parameters are command dependant.
+
+### Response
+
+* `family:  u8`: it's always `CONTROL`
+* `id:     u32`: the request id
+* `status:  u8`: the response status
+
+Additional response values are command dependant.
+
+### Sniffer packets
+
+* `family:  u8`: it's always `SNIFFER`
+* `id:      u8`: the sniffer id
+* `size:   u32`: the packet size
+* `secs:   i64`: the packet timestamp seconds
+* `msecs:  i64`: the packet timestamp microseconds

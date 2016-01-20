@@ -11,6 +11,7 @@ import meh.watchdoge.request.into;
 import android.util.Log;
 import android.text.TextUtils;
 import java.util.HashMap;
+import java.util.ArrayList;
 import org.jetbrains.anko.*;
 
 import meh.watchdoge.R;
@@ -19,6 +20,7 @@ import android.app.Service;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
+import android.os.Bundle;
 import android.content.Intent;
 
 import android.app.Notification;
@@ -30,6 +32,7 @@ import java.io.DataInputStream;
 import org.msgpack.core.MessagePack;
 import org.msgpack.core.MessagePacker;
 import org.msgpack.core.MessageUnpacker;
+import org.msgpack.core.MessageTypeException;
 
 import java.io.IOException;
 
@@ -187,21 +190,77 @@ public class Backend(): Service() {
 								_requests.remove(id)!!
 							}
 
-							if (request.matches(Command.SNIFFER, Command.Sniffer.CREATE)) {
-								val id = _unpacker.unpackInt();
+							when {
+								request.matches(Command.SNIFFER, Command.Sniffer.CREATE) -> {
+									val id = _unpacker.unpackInt();
 
-								messenger.response(request, status) {
-									it.putInt("id", id);
+									messenger.response(request, status) {
+										it.putInt("id", id);
+									}
 								}
-							}
-							else {
-								messenger.response(request, status)
+
+								request.matches(Command.SNIFFER, Command.Sniffer.FILTER) &&
+								status == Command.Sniffer.Error.INVALID_FILTER -> {
+									val error = _unpacker.unpackString();
+
+									messenger.response(request, status) {
+										it.putString("reason", error);
+									}
+								}
+
+								else ->
+									messenger.response(request, status)
 							}
 						}
 
 						Command.SNIFFER -> {
-							val id   = _unpacker.unpackInt();
-							val size = _unpacker.unpackInt();
+							val id      = _unpacker.unpackInt();
+							val message = Message.obtain().tap {
+								// TODO: find a better way to identify it
+								it.what = 0xBADB011;
+							}
+
+							val packet                    = message.getData();
+
+							packet.putInt("size",   _unpacker.unpackInt());
+							packet.putLong("secs",  _unpacker.unpackLong());
+							packet.putLong("msecs", _unpacker.unpackLong());
+
+							val layers: ArrayList<Bundle> = arrayListOf();
+
+							do {
+								val layer = _unpacker.unpackValue();
+
+								when {
+									layer.isStringValue() -> {
+										val size = _unpacker.unpackMapHeader();
+										val info = Bundle().tap {
+											it.putString("_", layer.asStringValue().asString());
+										}
+
+										for (i in 1 .. size) {
+											val name  = _unpacker.unpackString();
+											val value = _unpacker.unpackValue();
+
+											info.putValue(name, value);
+										}
+
+										layers.add(info);
+									}
+
+									layer.isBinaryValue() -> {
+										layers.add(Bundle().tap {
+											it.putByteArray("data", layer.asBinaryValue().asByteArray());
+										});
+									}
+								}
+							} while (!layer.isNilValue())
+
+							packet.putParcelableArrayList("layers", layers);
+
+							Log.d("B", "SNIFFER/PACKET: ${packet.toString()}");
+
+							// TODO: send to subscribers
 						}
 					}
 				}

@@ -3,9 +3,11 @@ LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
 LOCAL_MODULE    := backend
-LOCAL_SRC_FILES := main.cpp wd/send.cpp wd/device.cpp wd/sniffer.cpp
 LOCAL_CPPFLAGS  := -std=gnu++1y -fdiagnostics-color=always -fexceptions -frtti
 LOCAL_LDLIBS    := -llog
+
+LOCAL_SRC_FILES := main.cpp send.cpp device.cpp sniffer.cpp \
+	packet/unknown.cpp packet/ethernet.cpp packet/ip.cpp
 
 LOCAL_C_INCLUDES += jni/vendor/pcap
 LOCAL_C_INCLUDES += jni/vendor/msgpack/include

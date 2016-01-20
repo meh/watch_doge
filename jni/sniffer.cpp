@@ -2,6 +2,7 @@
 
 #include <wd/send>
 #include <wd/sniffer>
+#include <wd/packet>
 
 namespace wd {
 	static
@@ -71,7 +72,7 @@ namespace wd {
 
 			if (command.type == command::sniffer::START && session != NULL) {
 				wd::response(command::CONTROL, command.request, [](auto& packer) {
-					packer.pack(command::sniffer::error::ALREADY_STARTED);
+					packer.pack_uint8(command::sniffer::error::ALREADY_STARTED);
 				});
 
 				continue;
@@ -79,7 +80,7 @@ namespace wd {
 			
 			if (command.type != command::sniffer::START && session == NULL) {
 				wd::response(command::CONTROL, command.request, [](auto& packer) {
-					packer.pack(command::sniffer::error::NOT_STARTED);
+					packer.pack_uint8(command::sniffer::error::NOT_STARTED);
 				});
 
 				continue;
@@ -93,7 +94,7 @@ namespace wd {
 					netmask = std::get<1>(started);
 
 					wd::response(command::CONTROL, command.request, [](auto& packer) {
-						packer.pack(command::SUCCESS);
+						packer.pack_uint8(command::SUCCESS);
 					});
 
 					break;
@@ -103,7 +104,7 @@ namespace wd {
 					_stop(session);
 
 					wd::response(command::CONTROL, command.request, [](auto& packer) {
-						packer.pack(command::SUCCESS);
+						packer.pack_uint8(command::SUCCESS);
 					});
 
 					break;
@@ -115,13 +116,13 @@ namespace wd {
 
 					if (error) {
 						wd::response(command::CONTROL, command.request, [&](auto& packer) {
-							packer.pack(command::sniffer::error::INVALID_FILTER);
+							packer.pack_uint8(command::sniffer::error::INVALID_FILTER);
 							packer.pack(*error);
 						});
 					}
 					else {
 						wd::response(command::CONTROL, command.request, [&](auto& packer) {
-							packer.pack(command::SUCCESS);
+							packer.pack_uint8(command::SUCCESS);
 						});
 					}
 
@@ -133,7 +134,18 @@ namespace wd {
 					const  u_char*     packet = pcap_next(session, &header);
 
 					wd::response(command::SNIFFER, id, [&](auto& packer) {
-						packer.pack_int(header.len);
+						// packet size
+						packer.pack_uint32(header.len);
+
+						// packet timestamp
+						packer.pack_int64(header.ts.tv_sec);
+						packer.pack_int64(header.ts.tv_usec);
+
+						// start from ethernet, it does the rest itself
+						packet::pack(packer, &header, 0, reinterpret_cast<const packet::ethernet*>(packet));
+
+						// no more decoded data
+						packer.pack_nil();
 					});
 
 					break;
