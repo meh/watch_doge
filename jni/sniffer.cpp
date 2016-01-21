@@ -4,6 +4,8 @@
 #include <wd/sniffer>
 #include <wd/packet>
 
+#include <wd/log>
+
 namespace wd {
 	static
 	std::tuple<pcap_t*, bpf_u_int32>
@@ -26,23 +28,21 @@ namespace wd {
 	_filter(pcap_t* session, optional<string> filter, bpf_u_int32 net)
 	{
 		struct bpf_program filt;
-		int                result;
 
 		if (filter) {
-			result = pcap_compile(session, &filt, filter->c_str(), 0, net);
+			if (pcap_compile(session, &filt, filter->c_str(), 1, net) < 0) {
+				return optional<std::string>(pcap_geterr(session));
+			}
 		}
 		else {
-			result = pcap_compile(session, &filt, "", 0, net);
+			pcap_compile(session, &filt, "", 1, net);
 		}
 
-		if (result < 0) {
+		if (pcap_setfilter(session, &filt) < 0) {
 			return optional<std::string>(pcap_geterr(session));
 		}
-		else {
-			assert(pcap_setfilter(session, &filt) >= 0);
 
-			return optional<std::string>();
-		}
+		return optional<std::string>();
 	}
 
 	static
@@ -142,7 +142,7 @@ namespace wd {
 						packer.pack_int64(header.ts.tv_usec);
 
 						// start from ethernet, it does the rest itself
-						packet::pack(packer, &header, 0, reinterpret_cast<const packet::ethernet*>(packet));
+						packet::pack(packer, &header, reinterpret_cast<const packet::ether*>(packet));
 
 						// no more decoded data
 						packer.pack_nil();

@@ -165,7 +165,7 @@ public class Backend(): Service() {
 								}
 							}
 
-							Log.d("B", "SNIFFER/FILTER:\t id=${id} filter=${filter}");
+							Log.d("B", "SNIFFER/FILTER:\t id=${id} filter=\"${filter}\"");
 						}
 					}
 				}

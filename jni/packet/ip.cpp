@@ -1,4 +1,5 @@
 #include <wd/packet>
+#include <wd/log>
 
 #include <string>
 #include <sstream>
@@ -7,7 +8,7 @@ namespace wd {
 	namespace packet {
 		static
 		std::string
-		_ip(const in_addr* addr)
+		address(const in_addr* addr)
 		{
 			std::ostringstream ss;
 
@@ -20,47 +21,64 @@ namespace wd {
 		}
 
 		void
-		pack(msgpack::packer<std::ostream>& packer, const header* header, size_t offset, const ip* packet)
+		pack(msgpack::packer<std::ostream>& packer, const header* header, const ether* ether, const ip* ip)
 		{
-			auto OFFSET = offset + packet->header * 4;
+			auto OFFSET = ip->header * 4;
 
 			packer.pack("ip");
-			packer.pack_map(9);
+			packer.pack_map(10);
 
 			packer.pack("dscp");
-			packer.pack_uint8(packet->dscp);
+			packer.pack_uint8(ip->dscp);
 
 			packer.pack("ecn");
-			packer.pack_uint8(packet->ecn);
+			packer.pack_uint8(ip->ecn);
 
 			packer.pack("length");
-			packer.pack_uint16(ntohl(packet->length));
+			packer.pack_uint16(ntohl(ip->length));
 
 			packer.pack("id");
-			packer.pack_uint16(ntohl(packet->id));
+			packer.pack_uint16(ntohl(ip->id));
 
 			packer.pack("ttl");
-			packer.pack_uint8(packet->ttl);
-
-			packer.pack("protocol");
-			packer.pack_uint8(packet->protocol);
+			packer.pack_uint8(ip->ttl);
 
 			packer.pack("checksum");
-			packer.pack_uint16(ntohs(packet->checksum));
+			packer.pack_uint16(ntohs(ip->checksum));
 
 			packer.pack("source");
-			packer.pack(_ip(&packet->source));
+			packer.pack(address(&ip->source));
 
 			packer.pack("destination");
-			packer.pack(_ip(&packet->destination));
+			packer.pack(address(&ip->destination));
 
-			if (packet->header > 5) {
-				// TODO: decode options
+			packer.pack("options");
+			if (ip->header > 5) {
+				// TODO: actually decode options
+				packer.pack_array(0);
+			}
+			else {
+				packer.pack_array(0);
 			}
 
-			switch (packet->protocol) {
-				default:
-					pack(packer, header, OFFSET, reinterpret_cast<const unknown*>(packet) + OFFSET);
+			packer.pack("protocol");
+			switch (ip->protocol) {
+				case ip::ICMP: {
+					packer.pack("icmp");
+					pack(packer, header, ether, ip, reinterpret_cast<const ip::icmp*>(
+						reinterpret_cast<const char*>(ip) + OFFSET));
+
+					break;
+				}
+
+				default: {
+					packer.pack_uint8(ip->protocol);
+					pack(packer, header,
+						reinterpret_cast<const char*>(ip) - reinterpret_cast<const char*>(ether) + OFFSET,
+						reinterpret_cast<const unknown*>(reinterpret_cast<const char*>(ip) + OFFSET));
+
+					break;
+				}
 			}
 		}
 	}
