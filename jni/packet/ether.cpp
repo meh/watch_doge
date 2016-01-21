@@ -6,9 +6,8 @@
 
 namespace wd {
 	namespace packet {
-		static
 		std::string
-		address(const uint8_t* addr)
+		ether::address(const uint8_t* addr)
 		{
 			std::ostringstream ss;
 
@@ -23,38 +22,50 @@ namespace wd {
 			return ss.str();
 		};
 
-		void
-		pack(msgpack::packer<std::ostream>& packer, const header* header, const ether* packet)
+		size_t
+		ether::pack(msgpack::packer<std::ostream>& packer, const ether* packet)
 		{
-			auto OFFSET = sizeof(ether);
+			auto LENGTH = sizeof(ether);
 
-			packer.pack("ether");
 			packer.pack_map(3);
 
 			packer.pack("source");
-			packer.pack(address(packet->source));
+			packer.pack(ether::address(packet->source));
 
 			packer.pack("destination");
-			packer.pack(address(packet->destination));
+			packer.pack(ether::address(packet->destination));
 
 			packer.pack("type");
 			switch (ntohs(packet->type)) {
-				case ether::IPv4: {
-					packer.pack("ip");
-					pack(packer, header, packet, reinterpret_cast<const ip*>(
-						reinterpret_cast<const char*>(packet) + OFFSET));
-
+				case ether::IPv4: packer.pack("ip");
 					break;
-				}
 
-				default: {
+				default:
 					packer.pack_uint16(ntohs(packet->type));
-					pack(packer, header, OFFSET, reinterpret_cast<const unknown*>(
-						reinterpret_cast<const char*>(packet) + OFFSET));
+			}
+
+			return LENGTH;
+		}
+
+		size_t
+		ether::pack(msgpack::packer<std::ostream>& packer, const header* header, const ether* packet)
+		{
+			packer.pack("ether");
+
+			auto LENGTH = ether::pack(packer, packet);
+
+			switch (ntohs(packet->type)) {
+				case ether::IPv4:
+					ip::pack(packer, header, packet, reinterpret_cast<const ip*>(
+						reinterpret_cast<const char*>(packet) + LENGTH));
 
 					break;
-				}
+
+				default:
+					unknown(packer, header, LENGTH, reinterpret_cast<const char*>(packet) + LENGTH);
 			}
+
+			return LENGTH;
 		}
 	}
 }

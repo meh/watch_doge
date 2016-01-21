@@ -10,11 +10,14 @@
 namespace wd {
 	namespace packet {
 		typedef struct pcap_pkthdr header;
-		typedef char unknown;
 
 		#define ETHER_ADDR_LEN 6
 
 		struct ether {
+			static std::string address(const uint8_t* addr);
+			static size_t      pack(msgpack::packer<std::ostream>& packer, const ether*);
+			static size_t      pack(msgpack::packer<std::ostream>& packer, const header* header, const ether*);
+
 			uint8_t destination[ETHER_ADDR_LEN];
 			uint8_t source[ETHER_ADDR_LEN];
 
@@ -26,6 +29,10 @@ namespace wd {
 		};
 
 		struct ip {
+			static std::string address(const in_addr* addr);
+			static size_t      pack(msgpack::packer<std::ostream>& packer, const ip*);
+			static size_t      pack(msgpack::packer<std::ostream>& packer, const header* header, const ether*, const ip*);
+
 			uint8_t header  : 4,
 			        version : 4;
 
@@ -51,6 +58,9 @@ namespace wd {
 			in_addr destination;
 
 			struct icmp {
+				static size_t pack(msgpack::packer<std::ostream>& packer, const ip::icmp*);
+				static size_t pack(msgpack::packer<std::ostream>& packer, const packet::header* header, const ether*, const ip*, const ip::icmp*);
+
 				enum : uint8_t {
 					ECHO_REPLY              = 0,
 					DESTINATION_UNREACHABLE = 3,
@@ -61,7 +71,7 @@ namespace wd {
 					ROUTER_SOLICITATION     = 10,
 					TIME_EXCEEDED           = 11,
 					PARAMETER_PROBLEM       = 12,
-					TIMESTAMP               = 13,
+					TIMESTAMP_REQUEST       = 13,
 					TIMESTAMP_REPLY         = 14,
 					INFORMATION_REQUEST     = 15,
 					INFORMATION_REPLY       = 16,
@@ -70,54 +80,92 @@ namespace wd {
 					TRACEROUTE              = 30,
 				} type;
 
-				enum destination_unreachable : uint8_t {
-					DESTINATION_NETWORK_UNREACHABLE           = 0,
-					DESTINATION_HOST_UNREACHABLE              = 1,
-					DESTINATION_PROTOCOL_UNREACHABLE          = 2,
-					DESTINATION_PORT_UNREACHABLE              = 3,
-					FRAGMENTATION_REQUIRED                    = 4,
-					SOURCE_ROUTE_FAILED                       = 5,
-					DESTINATION_NETWORK_UNKNOWN               = 6,
-					DESTINATION_HOST_UNKNOWN                  = 7,
-					SOURCE_HOST_ISOLATED                      = 8,
-					NETWORK_ADMINISTRATIVELY_PROHIBITED       = 9,
-					HOST_ADMINISTRATIVELY_PROHIBITED          = 10,
-					NETWORK_UNREACHABLE_FOR_TOS               = 11,
-					HOST_UNREACHABLE_FOR_TOS                  = 12,
-					COMMUNICATION_ADMINISTRATIVELY_PROHIBITED = 13,
-					HOST_PRECEDENCE_VIOLATION                 = 14,
-					PRECEDENT_CUTOFF_IN_EFFECT                = 15,
-				};
+				struct code {
+					enum destination_unreachable : uint8_t {
+						DESTINATION_NETWORK_UNREACHABLE           = 0,
+						DESTINATION_HOST_UNREACHABLE              = 1,
+						DESTINATION_PROTOCOL_UNREACHABLE          = 2,
+						DESTINATION_PORT_UNREACHABLE              = 3,
+						FRAGMENTATION_REQUIRED                    = 4,
+						SOURCE_ROUTE_FAILED                       = 5,
+						DESTINATION_NETWORK_UNKNOWN               = 6,
+						DESTINATION_HOST_UNKNOWN                  = 7,
+						SOURCE_HOST_ISOLATED                      = 8,
+						NETWORK_ADMINISTRATIVELY_PROHIBITED       = 9,
+						HOST_ADMINISTRATIVELY_PROHIBITED          = 10,
+						NETWORK_UNREACHABLE_FOR_TOS               = 11,
+						HOST_UNREACHABLE_FOR_TOS                  = 12,
+						COMMUNICATION_ADMINISTRATIVELY_PROHIBITED = 13,
+						HOST_PRECEDENCE_VIOLATION                 = 14,
+						PRECEDENT_CUTOFF_IN_EFFECT                = 15,
+					};
 
-				enum redirect_message : uint8_t {
-					REDIRECT_DATAGRAM_FOR_NETWORK         = 0,
-					REDIRECT_DATAGRAM_FOR_HOST            = 1,
-					REDIRECT_DATAGRAM_FOR_TOS_AND_NETWORK = 2,
-					REDIRECT_DATAGRAM_FOR_TOS_AND_HOST    = 3,
-				};
+					enum redirect_message : uint8_t {
+						REDIRECT_DATAGRAM_FOR_NETWORK         = 0,
+						REDIRECT_DATAGRAM_FOR_HOST            = 1,
+						REDIRECT_DATAGRAM_FOR_TOS_AND_NETWORK = 2,
+						REDIRECT_DATAGRAM_FOR_TOS_AND_HOST    = 3,
+					};
 
-				enum parameter_problem : uint8_t {
-					POINTER_INDICATES_ERROR = 0,
-					MISSING_REQUIRED_OPTION = 1,
-					BAD_LENGTH              = 2,
+					enum parameter_problem : uint8_t {
+						POINTER_INDICATES_ERROR = 0,
+						MISSING_REQUIRED_OPTION = 1,
+						BAD_LENGTH              = 2,
+					};
 				};
 
 				union {
 					uint8_t raw;
 
-					enum destination_unreachable destination_unreachable;
-					enum redirect_message        redirect_message;
-					enum parameter_problem       parameter_problem;
+					code::destination_unreachable destination_unreachable;
+					code::redirect_message        redirect_message;
+					code::parameter_problem       parameter_problem;
 				} code;
 
 				uint16_t checksum;
+
+				struct echo {
+					uint16_t identifier;
+					uint16_t sequence;
+
+					char data[0];
+				};
+
+				struct timestamp {
+					uint16_t identifier;
+					uint16_t sequence;
+
+					uint32_t originate;
+					uint32_t receive;
+					uint32_t transmit;
+				};
+
+				struct information {
+					uint16_t identifier;
+					uint16_t sequence;
+				};
+
+				struct parameter_problem {
+					uint32_t pointer : 8,
+					         unused;
+
+					char payload[0];
+				};
+
+				struct redirect_message {
+					in_addr gateway;
+
+					char payload[0];
+				};
+
+				struct previous {
+					uint32_t unused;
+
+					char payload[0];
+				};
 			};
 		};
 
-		void pack(msgpack::packer<std::ostream>& packer, const header* header, size_t offset, const unknown*);
-
-		void pack(msgpack::packer<std::ostream>& packer, const header* header, const ether*);
-		void pack(msgpack::packer<std::ostream>& packer, const header* header, const ether*, const ip*);
-		void pack(msgpack::packer<std::ostream>& packer, const header* header, const ether*, const ip*, const ip::icmp*);
+		size_t unknown(msgpack::packer<std::ostream>& packer, const header* header, size_t offset, const char* data);
 	}
 }

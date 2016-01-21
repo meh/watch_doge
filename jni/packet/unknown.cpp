@@ -2,11 +2,15 @@
 
 namespace wd {
 	namespace packet {
-		void
-		pack(msgpack::packer<std::ostream>& packer, const header* header, size_t offset, const unknown* packet)
+		size_t
+		unknown(msgpack::packer<std::ostream>& packer, const header* header, size_t offset, const char* data)
 		{
-			packer.pack_bin(header->len - offset);
-			packer.pack_bin_body(packet, header->len - offset);
+			auto LENGTH = header->len - offset;
+
+			packer.pack_bin(LENGTH);
+			packer.pack_bin_body(data, LENGTH);
+
+			return LENGTH;
 		}
 	}
 }

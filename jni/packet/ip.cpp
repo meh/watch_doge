@@ -6,9 +6,8 @@
 
 namespace wd {
 	namespace packet {
-		static
 		std::string
-		address(const in_addr* addr)
+		ip::address(const in_addr* addr)
 		{
 			std::ostringstream ss;
 
@@ -20,12 +19,11 @@ namespace wd {
 			return ss.str();
 		}
 
-		void
-		pack(msgpack::packer<std::ostream>& packer, const header* header, const ether* ether, const ip* ip)
+		size_t
+		ip::pack(msgpack::packer<std::ostream>& packer, const ip* ip)
 		{
-			auto OFFSET = ip->header * 4;
+			auto LENGTH = ip->header * 4;
 
-			packer.pack("ip");
 			packer.pack_map(10);
 
 			packer.pack("dscp");
@@ -47,10 +45,10 @@ namespace wd {
 			packer.pack_uint16(ntohs(ip->checksum));
 
 			packer.pack("source");
-			packer.pack(address(&ip->source));
+			packer.pack(ip::address(&ip->source));
 
 			packer.pack("destination");
-			packer.pack(address(&ip->destination));
+			packer.pack(ip::address(&ip->destination));
 
 			packer.pack("options");
 			if (ip->header > 5) {
@@ -63,23 +61,37 @@ namespace wd {
 
 			packer.pack("protocol");
 			switch (ip->protocol) {
-				case ip::ICMP: {
-					packer.pack("icmp");
-					pack(packer, header, ether, ip, reinterpret_cast<const ip::icmp*>(
-						reinterpret_cast<const char*>(ip) + OFFSET));
-
+				case ip::ICMP: packer.pack("icmp");
 					break;
-				}
 
-				default: {
+				default:
 					packer.pack_uint8(ip->protocol);
-					pack(packer, header,
-						reinterpret_cast<const char*>(ip) - reinterpret_cast<const char*>(ether) + OFFSET,
-						reinterpret_cast<const unknown*>(reinterpret_cast<const char*>(ip) + OFFSET));
+			}
+
+			return LENGTH;
+		}
+
+		size_t
+		ip::pack(msgpack::packer<std::ostream>& packer, const packet::header* header, const ether* ether, const ip* ip)
+		{
+			packer.pack("ip");
+
+			auto OFFSET = reinterpret_cast<const char*>(ip) - reinterpret_cast<const char*>(ether);
+			auto LENGTH = pack(packer, ip);
+
+			switch (ip->protocol) {
+				case ip::ICMP: {
+					ip::icmp::pack(packer, header, ether, ip, reinterpret_cast<const ip::icmp*>(
+						reinterpret_cast<const char*>(ip) + LENGTH));
 
 					break;
 				}
+
+				default:
+					unknown(packer, header, OFFSET, reinterpret_cast<const char*>(ip) + LENGTH);
 			}
+
+			return LENGTH;
 		}
 	}
 }

@@ -142,7 +142,7 @@ namespace wd {
 						packer.pack_int64(header.ts.tv_usec);
 
 						// start from ethernet, it does the rest itself
-						packet::pack(packer, &header, reinterpret_cast<const packet::ether*>(packet));
+						packet::ether::pack(packer, &header, reinterpret_cast<const packet::ether*>(packet));
 
 						// no more decoded data
 						packer.pack_nil();
