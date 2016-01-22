@@ -1,3 +1,5 @@
+#pragma once
+
 #include <thread>
 #include <string>
 #include <memory>
@@ -5,6 +7,14 @@
 #include <optional.hpp>
 #include <errno.h>
 #include <readerwriterqueue.h>
+
+#include <stdint.h>
+
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
+#include <msgpack.hpp>
+#include <pcap.h>
 
 namespace wd {
 	using std::string;
@@ -14,6 +24,10 @@ namespace wd {
 
 	template<typename T, size_t MAX_BLOCK_SIZE = 512>
 	using queue = typename moodycamel::BlockingReaderWriterQueue<T, MAX_BLOCK_SIZE>;
+
+	namespace packet {
+		typedef struct pcap_pkthdr header;
+	}
 
 	class sniffer {
 	public:

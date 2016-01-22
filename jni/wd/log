@@ -1,3 +1,5 @@
+#pragma once
+
 #include <android/log.h>
 
 #define LOG(level, format, ...) \

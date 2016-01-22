@@ -1,0 +1,69 @@
+#pragma once
+
+#include <wd/sniffer>
+
+namespace wd {
+	namespace packet {
+		class ip {
+			public:
+				struct raw {
+					uint8_t  version_and_header;
+					uint8_t  dscp_and_ecn;
+					uint16_t length;
+
+					uint16_t id;
+					uint16_t flags_and_offset;
+
+					uint8_t  ttl;
+					uint8_t  protocol;
+					uint16_t checksum;
+
+					in_addr source;
+					in_addr destination;
+
+					uint32_t options[0];
+				};
+
+				enum protocol : uint8_t {
+					ICMP = 0x01,
+					TCP  = 0x06,
+				};
+
+			public:
+				static std::string address(const in_addr* addr);
+
+			private:
+				const raw* packet;
+
+			public:
+				ip(const raw* p) : packet(p) { }
+
+				size_t pack(msgpack::packer<std::ostream>& packer);
+				size_t pack(msgpack::packer<std::ostream>& packer, const header* header, const ether::raw*);
+
+			public:
+				uint8_t version() const;
+				uint8_t header() const;
+
+				uint8_t dscp() const;
+				uint8_t ecn() const;
+
+				uint16_t length() const;
+
+				uint16_t id() const;
+
+				uint16_t flags() const;
+				uint16_t offset() const;
+
+				uint8_t ttl() const;
+
+				enum protocol protocol() const;
+
+				uint16_t checksum() const;
+
+				std::string source() const;
+
+				std::string destination() const;
+		};
+	}
+}

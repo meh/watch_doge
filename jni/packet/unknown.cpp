@@ -1,11 +1,11 @@
-#include <wd/packet>
+#include <wd/packet/unknown>
 
 namespace wd {
 	namespace packet {
 		size_t
-		unknown(msgpack::packer<std::ostream>& packer, const header* header, size_t offset, const char* data)
+		unknown::pack(msgpack::packer<std::ostream>& packer)
 		{
-			auto LENGTH = header->len - offset;
+			auto LENGTH = packet->len - offset;
 
 			packer.pack_bin(LENGTH);
 			packer.pack_bin_body(data, LENGTH);

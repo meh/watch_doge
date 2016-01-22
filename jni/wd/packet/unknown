@@ -1,0 +1,20 @@
+#pragma once
+
+#include <wd/sniffer>
+
+namespace wd {
+	namespace packet {
+		class unknown {
+			private:
+				const header* packet;
+				const size_t  offset;
+				const char*   data;
+
+			public:
+				unknown(const header* packet, size_t offset, const char* data)
+					: packet(packet), offset(offset), data(data) { }
+
+				size_t pack(msgpack::packer<std::ostream>& packer);
+		};
+	}
+}
