@@ -1,0 +1,68 @@
+#pragma once
+
+#include <wd/sniffer>
+#include <wd/packet/ether>
+
+namespace wd {
+	namespace packet {
+		class arp {
+			public:
+				struct raw {
+					uint16_t hardware_type;
+					uint16_t protocol_type;
+
+					uint8_t hardware_length;
+					uint8_t protocol_length;
+
+					uint16_t operation;
+
+					char payload[0];
+				};
+
+				enum hardware : uint16_t {
+					ETHERNET = 1,
+				};
+
+				enum protocol : uint16_t {
+					IPv4 = 0x0800,
+					IPv6 = 0x86DD,
+				};
+
+				enum operation : uint16_t {
+					REQUEST = 1,
+					REPLY   = 2,
+				};
+
+				struct result {
+					typedef variant<std::string, std::vector<uint8_t>> type;
+
+					type hardware;
+					type protocol;
+				};
+
+			private:
+				const raw* packet;
+
+			public:
+				arp(const raw* p) : packet(p) { }
+
+				size_t pack(msgpack::packer<std::ostream>& packer, const header* header, const ether::raw*);
+
+			private:
+				void pack(msgpack::packer<std::ostream>& packer, result value);
+				void pack(msgpack::packer<std::ostream>& packer, result::type value);
+
+			public:
+				enum hardware hardware() const;
+				enum protocol protocol() const;
+
+				enum operation operation() const;
+
+				result sender() const;
+				result target() const;
+
+			private:
+				result part(const uint8_t* pointer) const;
+		};
+	}
+}

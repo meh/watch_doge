@@ -47,7 +47,7 @@ public class MainActivity(): Activity() {
 
 			(_sender!! to _receiver).request { sniffer( ) { create() } }
 			(_sender!! to _receiver).request { sniffer(1) { start() } }
-			(_sender!! to _receiver).request { sniffer(1) { filter("icmp and ((icmp[icmptype] = icmp-echo) or (icmp[icmptype] = icmp-echoreply))") } }
+			(_sender!! to _receiver).request { sniffer(1) { filter("tcp") } }
 		}
 	}
 }

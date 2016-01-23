@@ -1,5 +1,6 @@
 #include <wd/packet/unknown>
 #include <wd/packet/ether>
+#include <wd/packet/arp>
 #include <wd/packet/ip>
 
 #include <string>
@@ -54,7 +55,12 @@ namespace wd {
 
 			packer.pack("type");
 			switch (type()) {
-				case ether::IPv4: packer.pack("ip");
+				case ether::IPv4:
+					packer.pack("ip");
+					break;
+
+				case ether::ARP:
+					packer.pack("arp");
 					break;
 
 				default:
@@ -74,6 +80,13 @@ namespace wd {
 				case ether::IPv4: {
 					ip ip(reinterpret_cast<const ip::raw*>(reinterpret_cast<const char*>(packet) + LENGTH));
 					ip.pack(packer, header, packet);
+
+					break;
+				}
+
+				case ether::ARP: {
+					arp arp(reinterpret_cast<const arp::raw*>(reinterpret_cast<const char*>(packet) + LENGTH));
+					arp.pack(packer, header, packet);
 
 					break;
 				}

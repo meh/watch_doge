@@ -1,18 +1,13 @@
-#include <pcap.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-
 #include <wd/device>
 
 namespace wd {
 	namespace device {
-		optional<string>
-		find(string ip)
+		optional<std::string>
+		find(std::string ip)
 		{
-			char             errbuf[PCAP_ERRBUF_SIZE];
-			pcap_if_t*       devices;
-			optional<string> result;
+			char                  errbuf[PCAP_ERRBUF_SIZE];
+			pcap_if_t*            devices;
+			optional<std::string> result;
 
 			if (pcap_findalldevs(&devices, errbuf) < 0) {
 				return result;

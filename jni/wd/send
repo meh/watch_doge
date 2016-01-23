@@ -1,9 +1,6 @@
 #pragma once
 
-#include <iostream>
-#include <functional>
-
-#include <msgpack.hpp>
+#include <wd/common>
 #include <wd/commands>
 
 namespace wd {

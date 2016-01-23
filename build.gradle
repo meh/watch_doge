@@ -58,9 +58,10 @@ dependencies {
 	compile 'org.msgpack:msgpack-core:0.8.1'
 }
 
-task packageExecutable(type: Copy){
-	from 'libs/armeabi/backend'
+task packageExecutable(type: Copy) {
+	from 'libs/armeabi/'
 	into 'src/main/res/raw/'
+	include '*'
 }
 
 task ndkBuild(type: Exec, description: "Task to run ndk-build") {

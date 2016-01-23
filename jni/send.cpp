@@ -1,6 +1,3 @@
-#include <mutex>
-
-#include <msgpack.hpp>
 #include <wd/send>
 
 namespace wd {
@@ -9,13 +6,12 @@ namespace wd {
 	void
 	send(std::function<void(msgpack::packer<std::ostream>&)> body)
 	{
-		locker.lock();
+		std::lock_guard<std::mutex> guard(locker);
 
 		msgpack::packer<std::ostream> packer(std::cout);
 		body(packer);
 
 		std::cout.flush();
-		locker.unlock();
 	}
 
 	void

@@ -1,13 +1,9 @@
 #pragma once
 
-#include <string>
-#include <optional.hpp>
+#include <wd/common>
 
 namespace wd {
 	namespace device {
-		using std::experimental::optional;
-		using std::string;
-
-		optional<string> find(string ip);
+		optional<std::string> find(std::string ip);
 	}
 }

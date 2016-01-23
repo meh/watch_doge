@@ -1,19 +1,5 @@
-#include <unistd.h>
-#include <stdint.h>
-#include <string>
-#include <thread>
-#include <map>
-
-#include <msgpack.hpp>
-#include <pcap.h>
-#include <optional.hpp>
-
-#include <wd/log>
 #include <wd/device>
 #include <wd/sniffer>
-#include <wd/send>
-
-using std::experimental::optional;
 
 int
 main (int argc, char* argv[])

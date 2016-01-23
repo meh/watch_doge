@@ -1,10 +1,5 @@
-#include <pcap.h>
-
-#include <wd/send>
 #include <wd/sniffer>
 #include <wd/packet/ether>
-
-#include <wd/log>
 
 namespace wd {
 	static
@@ -111,8 +106,7 @@ namespace wd {
 				}
 
 				case command::sniffer::FILTER: {
-					auto error = _filter(session, *command.data.filter, netmask);
-					delete command.data.filter;
+					auto error = _filter(session, command.data.get<optional<std::string>>(), netmask);
 
 					if (error) {
 						wd::response(command::CONTROL, command.request, [&](auto& packer) {
@@ -187,9 +181,7 @@ namespace wd {
 		_queue->enqueue(sniffer::command {
 			.request = request,
 			.type    = wd::command::sniffer::FILTER,
-			.data    = {
-				.filter = new optional<string>(flt)
-			}
+			.data    = flt,
 		});
 	}
 

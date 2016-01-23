@@ -1,20 +1,6 @@
 #pragma once
 
-#include <thread>
-#include <string>
-#include <memory>
-
-#include <optional.hpp>
-#include <errno.h>
-#include <readerwriterqueue.h>
-
-#include <stdint.h>
-
-#include <netinet/in.h>
-#include <arpa/inet.h>
-
-#include <msgpack.hpp>
-#include <pcap.h>
+#include <wd/common>
 
 namespace wd {
 	using std::string;
@@ -32,13 +18,9 @@ namespace wd {
 	class sniffer {
 	public:
 		struct command {
-			union Data {
-				optional<string>* filter;
-			};
-
-			int  request;
-			int  type;
-			Data data;
+			int                       request;
+			int                       type;
+			variant<optional<string>> data;
 		};
 
 	public:

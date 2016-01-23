@@ -2,6 +2,7 @@
 #include <wd/packet/ether>
 #include <wd/packet/ip>
 #include <wd/packet/icmp>
+#include <wd/packet/tcp>
 
 #include <string>
 #include <sstream>
@@ -151,6 +152,10 @@ namespace wd {
 					packer.pack("icmp");
 					break;
 
+				case ip::TCP:
+					packer.pack("tcp");
+					break;
+
 				default:
 					packer.pack_uint8(protocol());
 			}
@@ -170,6 +175,13 @@ namespace wd {
 				case ip::ICMP: {
 					icmp icmp(reinterpret_cast<const icmp::raw*>(reinterpret_cast<const char*>(packet) + LENGTH));
 					icmp.pack(packer, header, ether, packet);
+
+					break;
+				}
+
+				case ip::TCP: {
+					tcp tcp(reinterpret_cast<const tcp::raw*>(reinterpret_cast<const char*>(packet) + LENGTH));
+					tcp.pack(packer, header, ether, packet);
 
 					break;
 				}
