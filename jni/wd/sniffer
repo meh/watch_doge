@@ -1,41 +1,80 @@
 #pragma once
 
 #include <wd/common>
+#include <wd/packet/packer>
 
 namespace wd {
-	using std::string;
-	using std::experimental::optional;
-	using std::thread;
-	using std::shared_ptr;
-
 	template<typename T, size_t MAX_BLOCK_SIZE = 512>
 	using queue = typename moodycamel::BlockingReaderWriterQueue<T, MAX_BLOCK_SIZE>;
 
-	namespace packet {
-		typedef struct pcap_pkthdr header;
-	}
-
 	class sniffer {
-	public:
-		struct command {
-			int                       request;
-			int                       type;
-			variant<optional<string>> data;
-		};
+		public:
+			struct command {
+				int                            request;
+				int                            type;
+				std::variant<std::optional<std::string>> data;
+			};
 
-	public:
-		sniffer(int id, string device);
-		~sniffer();
+			class cache {
+				public:
+					struct header {
+						uint32_t magic_number;
 
-		void start(int request);
-		void filter(int request, optional<string> flt);
-		void stop(int request);
+						uint16_t version_major;
+						uint16_t version_minor;
 
-	private:
-		int    _id;
-		string _device;
+						int32_t  thiszone;
+						uint32_t sigfigs;
 
-		shared_ptr<queue<command>> _queue;
-		thread                     _thread;
+						uint32_t snaplen;
+						uint32_t network;
+					};
+
+				public:
+					cache(std::string path, int id, uint32_t truncate = 65535);
+
+				public:
+					uint32_t
+					add(const packet::header* header, const uint8_t* packet);
+
+					std::optional<std::tuple<const packet::header*, const uint8_t*>>
+					get(uint32_t id);
+
+				private:
+					std::string _session;
+					std::string _index;
+
+					std::ifstream _isession;
+					std::ifstream _iindex;
+
+					std::ofstream _osession;
+					std::ofstream _oindex;
+
+					uint32_t _id;
+					uint32_t _offset;
+					uint32_t _truncate;
+
+					packet::header       _header;
+					std::vector<uint8_t> _buffer;
+			};
+
+		public:
+			sniffer(int id, std::string device, std::string cache, uint32_t truncate);
+			~sniffer();
+
+			void start(int request);
+			void filter(int request, std::optional<std::string> flt);
+			void stop(int request);
+
+			std::optional<std::tuple<const packet::header*, const uint8_t*>>
+			get(uint32_t id);
+
+		private:
+			int         _id;
+			std::string _device;
+
+			std::shared_ptr<cache>          _cache;
+			std::shared_ptr<queue<command>> _queue;
+			std::thread                     _thread;
 	};
 }

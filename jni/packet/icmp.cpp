@@ -26,7 +26,7 @@ namespace wd {
 		size_t
 		icmp::echo::length(const header* header, size_t offset) const
 		{
-			return header->len - (sizeof(icmp::raw) + sizeof(icmp::echo) + offset);
+			return header->caplen - (sizeof(icmp::raw) + sizeof(icmp::echo) + offset);
 		}
 
 		uint16_t
@@ -571,7 +571,7 @@ namespace wd {
 				}
 			}
 
-			if (header->len > OFFSET + LENGTH) {
+			if (header->caplen > OFFSET + LENGTH) {
 				unknown unknown(header, OFFSET + LENGTH, reinterpret_cast<const char*>(packet) + LENGTH);
 				unknown.pack(packer);
 			}

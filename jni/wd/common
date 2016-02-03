@@ -10,6 +10,7 @@
 
 #include <stdexcept>
 #include <iostream>
+#include <fstream>
 #include <functional>
 #include <string>
 #include <vector>
@@ -29,5 +30,9 @@
 #include <wd/log>
 #include <wd/send>
 
-using std::experimental::optional;
-using mapbox::util::variant;
+namespace std {
+	using std::experimental::optional;
+	using std::experimental::make_optional;
+	using std::experimental::nullopt;
+	using mapbox::util::variant;
+}

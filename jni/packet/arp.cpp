@@ -121,7 +121,7 @@ namespace wd {
 			packer.pack("target");
 			pack(packer, target());
 
-			if (header->len > OFFSET + LENGTH) {
+			if (header->caplen > OFFSET + LENGTH) {
 				unknown unknown(header, OFFSET + LENGTH, reinterpret_cast<const char*>(packet) + LENGTH);
 				unknown.pack(packer);
 			}

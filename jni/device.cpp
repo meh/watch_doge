@@ -2,21 +2,21 @@
 
 namespace wd {
 	namespace device {
-		optional<std::string>
+		std::optional<std::string>
 		find(std::string ip)
 		{
-			char                  errbuf[PCAP_ERRBUF_SIZE];
-			pcap_if_t*            devices;
-			optional<std::string> result;
+			char       errbuf[PCAP_ERRBUF_SIZE];
+			pcap_if_t* devices;
 
 			if (pcap_findalldevs(&devices, errbuf) < 0) {
-				return result;
+				return std::nullopt;
 			}
 
 			struct in_addr ip_addr;
 			inet_pton(AF_INET, ip.c_str(), &ip_addr);
 
-			pcap_if_t* device = devices;
+			std::optional<std::string> result;
+			pcap_if_t*                 device = devices;
 			while (device != NULL) {
 				pcap_addr_t* address = device->addresses;
 				while (address != NULL) {

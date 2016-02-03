@@ -4,6 +4,6 @@
 
 namespace wd {
 	namespace device {
-		optional<std::string> find(std::string ip);
+		std::optional<std::string> find(std::string ip);
 	}
 }

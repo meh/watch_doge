@@ -34,7 +34,7 @@ namespace wd {
 				};
 
 				struct result {
-					typedef variant<std::string, std::vector<uint8_t>> type;
+					typedef std::variant<std::string, std::vector<uint8_t>> type;
 
 					type hardware;
 					type protocol;

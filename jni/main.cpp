@@ -7,11 +7,27 @@ main (int argc, char* argv[])
 	(void) argc;
 	(void) argv;
 
+	if (geteuid() == 0) {
+		wd::send([](auto& packer) {
+			packer.pack_true();
+		});
+	}
+	else {
+		wd::send([](auto& packer) {
+				packer.pack_false();
+		});
+
+		return 1;
+	}
+
+	std::string cache;
+
 	std::map<int, wd::sniffer> sniffers;
 	int                        sniffer_id = 0;
 
 	msgpack::unpacker unpacker;
 	msgpack::unpacked unpacked;
+	bool              ready = false;
 
 	const size_t CHUNK = 256;
 
@@ -31,6 +47,21 @@ main (int argc, char* argv[])
 			}
 		}
 
+		if (!ready) {
+			auto name = NEXT();
+
+			if (name.is_nil()) {
+				ready = true;
+				continue;
+			}
+
+			if (name == "cache") {
+				cache = NEXT().as<std::string>();
+			}
+
+			continue;
+		}
+
 		int request = NEXT().as<int32_t>();
 		int family  = NEXT().as<uint8_t>();
 
@@ -38,7 +69,10 @@ main (int argc, char* argv[])
 			case wd::command::CONTROL: {
 				int command = NEXT().as<uint8_t>();
 
-				LOG(LOG_ERROR, "CONTROL: command=%d", command);
+				switch (command) {
+					case wd::command::control::CLOSE:
+						goto close;
+				}
 
 				break;
 			}
@@ -48,21 +82,27 @@ main (int argc, char* argv[])
 
 				switch (command) {
 					case wd::command::sniffer::CREATE: {
-						auto id     = ++sniffer_id;
-						auto ip     = NEXT().as<std::string>();
-						auto device = wd::device::find(ip);
+						auto id       = ++sniffer_id;
+						auto truncate = NEXT().as<uint64_t>();
+						auto ip       = NEXT();
+						auto device   = std::string("any");
 
-						if (!device) {
-							wd::response(wd::command::CONTROL, request, [](auto& packer) {
-								packer.pack(wd::command::sniffer::error::DEVICE_NOT_FOUND);
-							});
+						if (!ip.is_nil()) {
+							if (auto dev = wd::device::find(ip.as<std::string>())) {
+								device = *dev;
+							}
+							else {
+								wd::response(wd::command::CONTROL, request, [](auto& packer) {
+									packer.pack(wd::command::sniffer::error::DEVICE_NOT_FOUND);
+								});
 
-							continue;
+								continue;
+							}
 						}
 
 						sniffers.emplace(std::piecewise_construct,
 							std::make_tuple(id),
-							std::make_tuple(id, *device));
+							std::make_tuple(id, device, cache, truncate));
 
 						wd::response(wd::command::CONTROL, request, [&](auto& packer) {
 							packer.pack(wd::command::SUCCESS);
@@ -101,10 +141,40 @@ main (int argc, char* argv[])
 						}
 
 						if (filter.is_nil()) {
-							sniffers.at(id).filter(request, optional<std::string>());
+							sniffers.at(id).filter(request, std::nullopt);
 						}
 						else {
-							sniffers.at(id).filter(request, optional<std::string>(filter.as<std::string>()));
+							sniffers.at(id).filter(request, filter.as<std::string>());
+						}
+
+						break;
+					}
+
+					case wd::command::sniffer::GET: {
+						auto id  = NEXT().as<int32_t>();
+						auto pid = NEXT().as<int32_t>();
+
+						if (sniffers.find(id) == sniffers.end()) {
+							wd::response(wd::command::CONTROL, request, [](auto& packer) {
+								packer.pack(wd::command::sniffer::error::NOT_FOUND);
+							});
+
+							continue;
+						}
+
+						if (auto packet = sniffers.at(id).get(pid)) {
+							wd::response(wd::command::CONTROL, request, [](auto& packer) {
+								packer.pack(wd::command::SUCCESS);
+							});
+
+							wd::response(wd::command::SNIFFER, id, [&](auto& packer) {
+								wd::packet::pack(packer, pid, std::get<0>(*packet), std::get<1>(*packet));
+							});
+						}
+						else {
+							wd::response(wd::command::CONTROL, request, [](auto& packer) {
+								packer.pack(wd::command::sniffer::error::NOT_FOUND);
+							});
 						}
 
 						break;
@@ -116,5 +186,6 @@ main (int argc, char* argv[])
 		}
 	}
 
+close:
 	return 0;
 }

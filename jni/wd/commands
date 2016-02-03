@@ -2,11 +2,19 @@
 
 namespace wd {
 	namespace command {
+		const int UNKNOWN = -1;
+
 		const int SUCCESS = 0;
 		const int ERROR   = 1;
 
 		const int CONTROL = 0;
 		const int SNIFFER = 1;
+
+		namespace control {
+			const int PING  = 0;
+			const int ROOT  = 1;
+			const int CLOSE = 2;
+		}
 
 		namespace sniffer {
 			namespace error {
@@ -19,14 +27,12 @@ namespace wd {
 				const int INVALID_FILTER   = 7;
 			}
 
-			const int CREATE  = 0;
-			const int DESTROY = 1;
-			const int LIST    = 2;
-			const int LISTEN  = 3;
-
-			const int START   = 4;
-			const int STOP    = 5;
-			const int FILTER  = 6;
+			const int CREATE  = 100;
+			const int DESTROY = 101;
+			const int START   = 102;
+			const int STOP    = 103;
+			const int FILTER  = 104;
+			const int GET     = 105;
 		}
 	}
 }
