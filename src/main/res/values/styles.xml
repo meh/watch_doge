@@ -1,0 +1,29 @@
+<resources>
+	<color name="primary">#ff000000</color>
+	<color name="accent">#ffb21818</color>
+	<color name="content">#ff111111</color>
+
+	<style name="Theme.WatchDoge" parent="Theme.AppCompat.NoActionBar">
+		<item name="colorPrimary">@color/primary</item>
+		<item name="colorAccent">@color/accent</item>
+		<item name="colorControlActivated">@color/accent</item>
+	</style>
+
+	<style name="Theme.WatchDoge.Toolbar" parent="ThemeOverlay.AppCompat.ActionBar">
+		<item name="android:background">@color/primary</item>
+	</style>
+
+	<style name="Theme.WatchDoge.Tab.Layout" parent="Widget.Design.TabLayout">
+		<item name="tabTextAppearance">@style/Theme.WatchDoge.Tab.Text</item>
+		<item name="tabBackground">@drawable/tab_background</item>
+	</style>
+
+	<style name="Theme.WatchDoge.Tab.Text" parent="TextAppearance.Design.Tab">
+		<item name="android:textSize">12sp</item>
+		<item name="android:textAllCaps">true</item>
+	</style>
+
+	<style name="Theme.WatchDoge.ProgressBar" parent="Widget.MaterialProgressBar.ProgressBar">
+
+	</style>
+</resources>
