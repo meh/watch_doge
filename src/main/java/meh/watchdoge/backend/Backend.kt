@@ -5,7 +5,7 @@ import meh.watchdoge.Command;
 import meh.watchdoge.Request;
 import meh.watchdoge.request.family;
 import meh.watchdoge.request.command;
-import meh.watchdoge.request.incoming;
+import meh.watchdoge.request.isRequest;
 import meh.watchdoge.request.into;
 
 import android.util.Log;
@@ -37,14 +37,22 @@ import org.msgpack.core.MessageTypeException;
 import java.io.IOException;
 
 public class Backend(): Service() {
-	lateinit var _process:   Process;
-	lateinit var _packer:    MessagePacker;
-	lateinit var _unpacker:  MessageUnpacker;
-	lateinit var _messenger: Messenger;
+	private          var _root:     Boolean = false;
+	private lateinit var _process:  Process;
+	private lateinit var _packer:   MessagePacker;
+	private lateinit var _unpacker: MessageUnpacker;
 
-	var _request:  Int                                    = 0;
-	var _requests: HashMap<Int, Pair<Messenger, Request>> = HashMap();
-	var _sniffers: HashMap<Int, Array<Messenger>>         = HashMap();
+	private lateinit var _messenger: Messenger;
+
+	private var _request:  Int                                    = 0;
+	private var _requests: HashMap<Int, Pair<Messenger, Request>> = HashMap();
+	private var _sniffers: HashMap<Int, ArrayList<Messenger>>     = HashMap();
+
+	private fun setting(name: String, body: (MessagePacker) -> Unit) {
+		_packer.packString(name);
+		body(_packer);
+		_packer.flush();
+	}
 
 	override fun onCreate() {
 		_messenger = Messenger(Handler());
@@ -53,16 +61,22 @@ public class Backend(): Service() {
 			_process  = Runtime.getRuntime().exec(arrayOf("su", "-c", getFileStreamPath("backend").getPath()));
 			_packer   = MessagePack.newDefaultPacker(DataOutputStream(_process.getOutputStream()));
 			_unpacker = MessagePack.newDefaultUnpacker(DataInputStream(_process.getInputStream()));
+			_root     = _unpacker.unpackBoolean();
+
+			setting("cache") {
+				_packer.packString(getExternalCacheDir().getPath());
+			}
+
+			_packer.packNil();
 		}
 		catch (e: Exception) {
-			// TODO: report to user he dun goofed
-			Log.e("B", e.toString());
+			_root = false;
 		}
 
 		startForeground(1, Notification.Builder(getApplicationContext())
 			.setOngoing(true)
 			.setContentTitle(getText(R.string.app_name))
-			.setContentText(";^)")
+			.setContentText(if (_root) { ";^)" } else { ":'(" })
 			.setSmallIcon(R.drawable.notification)
 			.build());
 
@@ -78,19 +92,28 @@ public class Backend(): Service() {
   }
 
   override fun onDestroy() {
-		Log.d("B", "RIP");
-
-		// TODO: send cleanup message
-		_process.destroy();
+		_packer.packInt(0);
+		_packer.packInt(Command.CONTROL);
+		_packer.packInt(Command.Control.CLOSE);
+		_packer.flush();
 
 		try {
 			_process.waitFor();
 		} catch (e: InterruptedException) { }
-
-		Log.d("B", "in pieces");
   }
 
 	inner class Handler(): android.os.Handler() {
+		private fun response(msg: Message, status: Int, body: ((Bundle) -> Unit)? = null): Int {
+			val id = synchronized(_requests) {
+				_request += 1;
+				_request
+			};
+
+			msg.replyTo?.response(msg.into(id), status, body);
+
+			return id;
+		}
+
 		private fun forward(msg: Message, body: (MessagePacker) -> Unit): Int {
 			val id = synchronized(_requests) {
 				_request += 1;
@@ -112,32 +135,57 @@ public class Backend(): Service() {
 		}
 
 		override fun handleMessage(msg: Message) {
-			if (!msg.incoming()) {
+			if (!msg.isRequest()) {
 				super.handleMessage(msg);
 				return;
 			}
 
 			when (msg.family()) {
+				Command.CONTROL -> {
+					when (msg.command()) {
+						Command.Control.ROOT -> {
+							response(msg, Command.SUCCESS) {
+								it.putBoolean("status", _root);
+							}
+
+							return;
+						}
+					}
+				}
+
 				Command.SNIFFER -> {
 					when (msg.command()) {
 						Command.Sniffer.CREATE -> {
-							var ip = msg.getData().getString("ip");
+							var ip       = msg.getData().getString("ip");
+							var truncate = msg.getData().getInt("truncate");
 
 							if (ip == null) {
 								ip = wifiManager.getConnectionInfo().getIpAddress().let {
-									"%d.%d.%d.%d".format(
-										((it       ) and 0xff),
-										((it shr  8) and 0xff),
-										((it shr 16) and 0xff),
-										((it shr 24) and 0xff))
+									if (it != 0) {
+										"%d.%d.%d.%d".format(
+											((it       ) and 0xff),
+											((it shr  8) and 0xff),
+											((it shr 16) and 0xff),
+											((it shr 24) and 0xff))
+									}
+									else {
+										null
+									}
 								};
 							}
 
 							forward(msg) {
-								it.packString(ip);
+								it.packInt(truncate);
+
+								if (ip != null) {
+									it.packString(ip);
+								}
+								else {
+									it.packNil();
+								}
 							}
 
-							Log.d("B", "SNIFFER/CREATE:\t ip=${ip}");
+							return;
 						}
 
 						Command.Sniffer.START -> {
@@ -147,7 +195,7 @@ public class Backend(): Service() {
 								it.packInt(id);
 							}
 
-							Log.d("B", "SNIFFER/START:\t id=${id}");
+							return;
 						}
 
 						Command.Sniffer.FILTER -> {
@@ -165,12 +213,51 @@ public class Backend(): Service() {
 								}
 							}
 
-							Log.d("B", "SNIFFER/FILTER:\t id=${id} filter=\"${filter}\"");
+							return;
+						}
+
+						Command.Sniffer.SUBSCRIBE -> {
+							val id = msg.getData().getInt("id");
+
+							synchronized(_sniffers) {
+								if (!_sniffers.containsKey(id)) {
+									// TODO: send error
+								}
+								else {
+									val subscribers = _sniffers.get(id)!!;
+
+									if (!subscribers.contains(msg.replyTo)) {
+										subscribers.add(msg.replyTo);
+									}
+								}
+							}
+
+							return;
+						}
+
+						Command.Sniffer.UNSUBSCRIBE -> {
+							val id = msg.getData().getInt("id");
+
+							synchronized(_sniffers) {
+								if (!_sniffers.containsKey(id)) {
+									// TODO: send error
+								}
+								else {
+									val subscribers = _sniffers.get(id)!!;
+
+									if (subscribers.contains(msg.replyTo)) {
+										subscribers.remove(msg.replyTo);
+									}
+								}
+							}
+
+							return;
 						}
 					}
 				}
 			}
 
+			response(msg, Command.UNKNOWN)
 			super.handleMessage(msg);
 		}
 	}
@@ -194,6 +281,10 @@ public class Backend(): Service() {
 								request.matches(Command.SNIFFER, Command.Sniffer.CREATE) -> {
 									val id = _unpacker.unpackInt();
 
+									synchronized(_sniffers) {
+										_sniffers.put(id, ArrayList());
+									}
+
 									messenger.response(request, status) {
 										it.putInt("id", id);
 									}
@@ -216,15 +307,22 @@ public class Backend(): Service() {
 						Command.SNIFFER -> {
 							val id      = _unpacker.unpackInt();
 							val message = Message.obtain().tap {
-								// TODO: find a better way to identify it
-								it.what = 0xBADB011;
+								it.what = Command.Event.SNIFFER;
 							}
 
-							val packet                    = message.getData();
+							val packet = message.getData();
 
-							packet.putInt("size",   _unpacker.unpackInt());
-							packet.putLong("secs",  _unpacker.unpackLong());
-							packet.putLong("msecs", _unpacker.unpackLong());
+							packet.putInt("id", _unpacker.unpackInt());
+
+							packet.putParcelable("size", Bundle().tap {
+								packet.putInt("original", _unpacker.unpackInt());
+								packet.putInt("recorded", _unpacker.unpackInt());
+							});
+
+							packet.putParcelable("timestamp", Bundle().tap {
+								it.putLong("sec",  _unpacker.unpackLong());
+								it.putLong("usec", _unpacker.unpackLong());
+							});
 
 							val layers: ArrayList<Bundle> = arrayListOf();
 
@@ -258,9 +356,15 @@ public class Backend(): Service() {
 
 							packet.putParcelableArrayList("layers", layers);
 
-							Log.d("B", "SNIFFER/PACKET: ${packet.toString()}");
+							synchronized(_sniffers) {
+								if (_sniffers.containsKey(id)) {
+									val subscribers = _sniffers.get(id)!!;
 
-							// TODO: send to subscribers
+									for (subscriber in subscribers) {
+										subscriber.send(message);
+									}
+								}
+							}
 						}
 					}
 				}

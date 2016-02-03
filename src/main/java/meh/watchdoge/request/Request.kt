@@ -10,6 +10,10 @@ class Request(var id: Int): Builder {
 		sub.build(msg);
 	}
 
+	fun root() {
+		sub = Root();
+	}
+
 	fun sniffer(id: Int?, body: Sniffer.() -> Unit) {
 		val next = Sniffer(id);
 		next.body();

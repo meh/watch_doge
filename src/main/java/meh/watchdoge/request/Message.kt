@@ -3,7 +3,7 @@ package meh.watchdoge.request;
 import meh.watchdoge.Request;
 import android.os.Message;
 
-fun Message.incoming(): Boolean {
+fun Message.isRequest(): Boolean {
 	return this.what == 0xBADB01 && this.replyTo != null;
 }
 

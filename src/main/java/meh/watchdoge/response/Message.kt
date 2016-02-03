@@ -1,12 +1,17 @@
 package meh.watchdoge.response;
 
 import meh.watchdoge.Response;
+import meh.watchdoge.Command;
 
 import android.os.Bundle;
 import android.os.Message;
 
-fun Message.outgoing(): Boolean {
-	return this.what != 0;
+fun Message.isResponse(): Boolean {
+	return this.what < 0xBADB01 && this.replyTo == null;
+}
+
+fun Message.isSniffer(): Boolean {
+	return this.what == Command.Event.SNIFFER;
 }
 
 fun Message.status(): Int {

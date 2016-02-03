@@ -12,11 +12,14 @@ class Sniffer(var id: Int?): Builder {
 	}
 
 	fun create() {
-		sub = Create();
+		sub = Create(null, 0);
 	}
 
-	fun create(ip: String) {
-		sub = Create(ip);
+	fun create(body: Create.() -> Unit) {
+		val next = Create(null, 0);
+		next.body();
+
+		sub = next;
 	}
 
 	fun start() {
@@ -27,14 +30,23 @@ class Sniffer(var id: Int?): Builder {
 		sub = Filter(id!!, filter);
 	}
 
-	class Create(ip: String? = null): Builder {
-		private var ip = ip;
+	fun subscribe() {
+		sub = Subscribe(id!!);
+	}
+
+	class Create(ip: String?, truncate: Int): Builder {
+		private var ip       = ip;
+		private var truncate = truncate;
 
 		override fun build(msg: Message) {
 			msg.arg2 = Command.Sniffer.CREATE;
 
 			if (ip != null) {
 				msg.getData().putString("ip", ip);
+			}
+
+			if (truncate != 0) {
+				msg.getData().putInt("truncate", truncate);
 			}
 		}
 	}
@@ -62,6 +74,13 @@ class Sniffer(var id: Int?): Builder {
 			}
 		}
 	}
+
+	class Subscribe(id: Int): Builder {
+		private val id = id;
+
+		override fun build(msg: Message) {
+			msg.arg2 = Command.Sniffer.SUBSCRIBE;
+			msg.getData().putInt("id", id);
+		}
+	}
 }
-
-

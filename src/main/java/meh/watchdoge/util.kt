@@ -27,6 +27,10 @@ fun Pair<Messenger, Messenger>.request(body: Request.() -> Unit) {
 }
 
 fun Messenger.response(request: meh.watchdoge.Request, status: Int, body: ((Bundle) -> Unit)? = null) {
+	if (request.id == 0) {
+		return;
+	}
+
 	var msg = Message.obtain();
 
 	msg.what = status;
@@ -79,6 +83,10 @@ fun Bundle.putValue(key: String, value: Value) {
 			when {
 				values.size() == 0 ->
 					this.putParcelable(key, null);
+
+				values[0].isIntegerValue() -> {
+
+				}
 
 				values[0].isIntegerValue() && values[0].asIntegerValue().isInByteRange() ->
 					this.putByteArray(key, ByteArray(values.size()) {

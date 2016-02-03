@@ -20,17 +20,15 @@ public class Application(): android.app.Application() {
 	override fun onCreate() {
 		super.onCreate();
 
-		val context = getApplicationContext();
-
 		try {
 			val installed = getFileStreamPath("backend");
-			val updated   = context.getPackageManager()
-				.getPackageInfo(context.getPackageName(), 0)
+			val updated   = getPackageManager()
+				.getPackageInfo(getPackageName(), 0)
 				.lastUpdateTime;
 
 			if (!installed.exists() || installed.lastModified() < updated) {
-				context.getResources().openRawResource(R.raw.backend).use { input ->
-					context.openFileOutput("backend", Context.MODE_PRIVATE).use { output ->
+				getResources().openRawResource(R.raw.backend).use { input ->
+					openFileOutput("backend", Context.MODE_PRIVATE).use { output ->
 						input.copyTo(output)
 					}
 				}
@@ -44,7 +42,5 @@ public class Application(): android.app.Application() {
 			// TODO: report to user he dun goofed
 			Log.e("A", "backend installation failed");
 		}
-
-		startService(intentFor<Backend>());
 	}
 }
