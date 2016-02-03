@@ -3,13 +3,38 @@
           package="meh.watchdoge"
           android:versionCode="1"
           android:versionName="1.0.0">
-	<uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+	<!-- Could probably go lower. -->
+	<uses-sdk android:minSdkVersion="19" android:targetSdkVersion="23" />
+
+	<!-- The plan is to make an unsupported feature gray out its subsystem. -->
+	<uses-feature android:name="android.hardware.wifi" android:required="false" />
+	<uses-feature android:name="android.hardware.sensor.gyroscope" android:required="false" />
+	<uses-feature android:name="android.hardware.location" android:required="false" />
+	<uses-feature android:name="android.hardware.camera" android:required="false" />
+	<uses-feature android:name="android.hardware.bluetooth" android:required="false" />
+
+	<!-- SuperSU whines without it. -->
 	<uses-permission android:name="android.permission.ACCESS_SUPERUSER" />
+
+	<!-- Needed to get the current IP. -->
+	<uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+	<!-- Needed to export the saved sniffer sessions. -->
+	<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
+	<!-- Needed for security camera mapping and access point mapping. -->
+	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
+	<!-- Needed for security camera mapping. -->
+	<uses-permission android:name="android.permission.CAMERA" />
 
 	<application android:name=".Application"
 	             android:icon="@drawable/launcher"
-	             android:label="@string/app_name">
-		<activity android:name=".MainActivity"
+	             android:label="@string/app_name"
+	             android:theme="@style/Theme.WatchDoge">
+		<activity android:name=".Main"
 		          android:label="@string/app_name">
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />
@@ -17,9 +42,9 @@
 			</intent-filter>
 		</activity>
 
+		<!-- Backend service, runs the root executable and stays in its own process. -->
 		<service android:name=".backend.Backend"
 		         android:exported="false"
-		         android:process=":backend">
-		</service>
+		         android:process=":backend" />
 	</application>
 </manifest>

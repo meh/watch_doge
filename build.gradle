@@ -13,7 +13,7 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 
 android {
-	compileSdkVersion 19
+	compileSdkVersion 23
 	buildToolsVersion "23.0.2"
 
 	defaultConfig {
@@ -23,7 +23,7 @@ android {
 		versionName "1.0"
 
 		minSdkVersion 19
-		targetSdkVersion 19
+		targetSdkVersion 23
 	}
 
 	lintOptions {
@@ -48,12 +48,18 @@ repositories {
 }
 
 dependencies {
-	compile 'com.android.support:appcompat-v7:19.0.1'
 	compile 'org.jetbrains.kotlin:kotlin-stdlib:1.0.0-beta-4584'
 
-	compile 'org.jetbrains.anko:anko-sdk19:0.8'
-	compile 'org.jetbrains.anko:anko-support-v4:0.8'
-	compile 'org.jetbrains.anko:anko-appcompat-v7:0.8'
+	compile 'nl.komponents.kovenant:kovenant-core:+'
+	compile 'nl.komponents.kovenant:kovenant-combine:+'
+
+	compile 'com.android.support:appcompat-v7:+'
+	compile 'com.android.support:design:+'
+	compile 'me.zhanghai.android.materialprogressbar:library:1.1.4'
+
+	compile 'org.jetbrains.anko:anko-sdk19:+'
+	compile 'org.jetbrains.anko:anko-support-v4:+'
+	compile 'org.jetbrains.anko:anko-appcompat-v7:+'
 
 	compile 'org.msgpack:msgpack-core:0.8.1'
 }
