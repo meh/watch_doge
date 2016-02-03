@@ -76,7 +76,7 @@ public class Backend(): Service() {
 		startForeground(1, Notification.Builder(getApplicationContext())
 			.setOngoing(true)
 			.setContentTitle(getText(R.string.app_name))
-			.setContentText(if (_root) { ";^)" } else { ":'(" })
+			.setContentText(getString(if (_root) { R.string.yes_root } else { R.string.no_root }))
 			.setSmallIcon(R.drawable.notification)
 			.build());
 
