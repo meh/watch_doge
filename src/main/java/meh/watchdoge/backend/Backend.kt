@@ -80,7 +80,9 @@ public class Backend(): Service() {
 			.setSmallIcon(R.drawable.notification)
 			.build());
 
-		Looper().start();
+		if (_root) {
+			Looper().start();
+		}
   }
 
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
