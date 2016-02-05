@@ -4,8 +4,8 @@ import meh.watchdoge.util.*;
 import meh.watchdoge.backend.Connection;
 import meh.watchdoge.Response;
 
-import nl.komponents.kovenant.Promise;
-import nl.komponents.kovenant.then;
+import nl.komponents.kovenant.android.startKovenant;
+import nl.komponents.kovenant.android.stopKovenant;
 
 import android.util.Log;
 
@@ -36,6 +36,8 @@ import meh.watchdoge.ui.packet.Packet;
 class Main(): AppCompatActivity() {
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState);
+		startKovenant();
+
 		setContentView(R.layout.main);
 
 		find<Toolbar>(R.id.toolbar).tap {
@@ -47,6 +49,12 @@ class Main(): AppCompatActivity() {
 
 		val tabs = find<TabLayout>(R.id.tabs);
 		tabs.setupWithViewPager(pager);
+	}
+
+	override fun onDestroy() {
+		stopKovenant();
+
+		super.onDestroy();
 	}
 
 	class Pager(manager: FragmentManager): FragmentPagerAdapter(manager) {
