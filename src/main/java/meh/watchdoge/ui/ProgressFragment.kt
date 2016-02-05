@@ -17,7 +17,7 @@ abstract class ProgressFragment(layout: Int): Fragment() {
 	private          val _id:   Int = layout;
 	private lateinit var _view: View;
 
-	override fun onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle?): View {
+	override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
 		return inflater.inflate(R.layout.loading, container, false);
 	}
 
@@ -31,7 +31,7 @@ abstract class ProgressFragment(layout: Int): Fragment() {
 	fun show() {
 		async() {
 			uiThread {
-				val root     = getView();
+				val root     = getView()!!;
 				val progress = root.find<LinearLayout>(R.id.progress);
 				val content  = root.find<FrameLayout>(R.id.content);
 
