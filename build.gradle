@@ -5,7 +5,7 @@ buildscript {
 	
 	dependencies {
 		classpath 'com.android.tools.build:gradle:1.5.0'
-		classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.0.0-beta-4584'
+		classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.+'
 	}
 }
 
@@ -48,13 +48,16 @@ repositories {
 }
 
 dependencies {
-	compile 'org.jetbrains.kotlin:kotlin-stdlib:1.0.0-beta-4584'
+	compile 'org.jetbrains.kotlin:kotlin-stdlib:1.+'
 
 	compile 'nl.komponents.kovenant:kovenant-core:+'
+	compile 'nl.komponents.kovenant:kovenant-android:+'
 	compile 'nl.komponents.kovenant:kovenant-combine:+'
 
 	compile 'com.android.support:appcompat-v7:+'
 	compile 'com.android.support:design:+'
+	compile 'com.android.support:cardview-v7:+'
+	compile 'com.android.support:recyclerview-v7:+'
 	compile 'me.zhanghai.android.materialprogressbar:library:1.1.4'
 
 	compile 'org.jetbrains.anko:anko-sdk19:+'
