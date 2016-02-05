@@ -1,7 +1,13 @@
 <resources>
-	<color name="primary">#ff000000</color>
-	<color name="accent">#ffb21818</color>
-	<color name="content">#ff111111</color>
+	<color name="primary">#000000</color>
+	<color name="accent">#b21818</color>
+	<color name="content">#111111</color>
+
+	<color name="neutral">#333333</color>
+	<color name="success">#006600</color>
+	<color name="failure">#660000</color>
+
+	<color name="card">#222222</color>
 
 	<style name="Theme.WatchDoge" parent="Theme.AppCompat.NoActionBar">
 		<item name="colorPrimary">@color/primary</item>
@@ -25,5 +31,11 @@
 
 	<style name="Theme.WatchDoge.ProgressBar" parent="Widget.MaterialProgressBar.ProgressBar">
 
+	</style>
+
+	<style name="Theme.WatchDoge.Card" parent="CardView">
+		<item name="cardBackgroundColor">@color/card</item>
+		<item name="cardCornerRadius">0dp</item>
+		<item name="cardPreventCornerOverlap">false</item>
 	</style>
 </resources>
