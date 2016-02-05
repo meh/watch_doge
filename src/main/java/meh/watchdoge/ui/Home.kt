@@ -6,6 +6,7 @@ import meh.watchdoge.R;
 import org.jetbrains.anko.*;
 import meh.watchdoge.ui.util.*;
 import nl.komponents.kovenant.*;
+import nl.komponents.kovenant.ui.*;
 
 import android.os.Bundle;
 import meh.watchdoge.backend.Connection;
@@ -19,19 +20,18 @@ import android.widget.TextView;
 class Home(): ProgressFragment(R.layout.home) {
 	override fun load(view: View, bundle: Bundle?) {
 		backend() then { conn ->
-			Log.d("UI", "connected");
-
-			conn.request { root() } then { res ->
-				val root = res.details.getBoolean("status");
-				val text = view.find<TextView>(R.id.root)
-
-				Log.d("UI", "got root: ${root}");
+			conn.request { root() } successUi { res ->
+				val root   = res.details.getBoolean("status");
+				val header = view.find<TextView>(R.id.whoami_header);
+				val value  = view.find<TextView>(R.id.whoami_value);
 
 				if (root) {
-					text.setText("root");
+					value.setText("root");
+					header.setBackgroundColor(colorFor(R.color.success));
 				}
 				else {
-					text.setText("not root");
+					header.setBackgroundColor(colorFor(R.color.failure));
+					value.setText("a faggot");
 				}
 
 				show();
