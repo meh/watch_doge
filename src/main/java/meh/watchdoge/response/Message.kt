@@ -14,6 +14,10 @@ fun Message.isSniffer(): Boolean {
 	return this.what == Command.Event.SNIFFER;
 }
 
+fun Message.isWireless(): Boolean {
+	return this.what == Command.Event.WIRELESS;
+}
+
 fun Message.status(): Int {
 	return this.what;
 }

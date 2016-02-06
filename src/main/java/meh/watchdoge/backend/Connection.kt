@@ -6,8 +6,12 @@ import meh.watchdoge.util.*;
 import meh.watchdoge.Response;
 import meh.watchdoge.response.isResponse;
 import meh.watchdoge.response.isSniffer;
+import meh.watchdoge.response.isWireless;
 import meh.watchdoge.response.into;
 import meh.watchdoge.request.Request;
+
+import java.util.HashMap;
+import java.util.HashSet;
 
 import org.jetbrains.anko.*;
 import nl.komponents.kovenant.*;
@@ -30,16 +34,18 @@ class Connection(context: Context, ready: (Connection) -> Unit) {
 
 	private val _ready:    (Connection) -> Unit;
 	private var _requests: ArrayDeque<Deferred<Response, Response.Exception>>;
-	private var _sniffer:  ((Bundle) -> Unit)? = null;
+	private var _sniffers: HashMap<Int, HashSet<(Sniffer.Event) -> Unit>>;
+	private var _wireless: HashSet<(Wireless.Event) -> Unit>;
 
 	init {
 		_receiver   = Messenger(Handler());
 		_connection = ServiceConnection();
+		_first      = true;
 
-		_requests = ArrayDeque();
-		_sniffer  = null;
 		_ready    = ready;
-		_first    = true;
+		_requests = ArrayDeque();
+		_sniffers = HashMap();
+		_wireless = HashSet();
 
 		context.bindService(context.intentFor<Backend>(),
 			_connection, Context.BIND_AUTO_CREATE);
@@ -54,8 +60,30 @@ class Connection(context: Context, ready: (Connection) -> Unit) {
 		return req.promise;
 	}
 
-	fun sniffer(body: (Bundle) -> Unit) {
-		_sniffer = body;
+	fun subscribe(body: Subscriber.() -> Promise<Response, Response.Exception>): Promise<Response, Response.Exception> {
+		return Subscriber().body();
+	}
+
+	inner class Subscriber {
+		fun sniffer(id: Int, body: (Sniffer.Event) -> Unit): Promise<Response, Response.Exception> {
+			return request { sniffer(id) { subscribe() } } success {
+				synchronized(_sniffers) {
+					if (!_sniffers.containsKey(id)) {
+						_sniffers.put(id, HashSet());
+					}
+
+					_sniffers.get(id)!!.add(body);
+				}
+			};
+		}
+
+		fun wireless(body: (Wireless.Event) -> Unit): Promise<Response, Response.Exception> {
+			return request { wireless { subscribe() } } success {
+				synchronized(_wireless) {
+					_wireless.add(body);
+				}
+			};
+		}
 	}
 
 	inner class Handler(): android.os.Handler() {
@@ -74,8 +102,26 @@ class Connection(context: Context, ready: (Connection) -> Unit) {
 				}
 
 				msg.isSniffer() -> {
-					if (_sniffer != null) {
-						_sniffer!!(msg.getData());
+					val event = Sniffer.Event.from(msg);
+
+					synchronized(_sniffers) {
+						val subs = _sniffers.get(event.owner());
+
+						if (subs != null) {
+							for (sub in subs) {
+								sub(event)
+							}
+						}
+					}
+				}
+
+				msg.isWireless() -> {
+					val event = Wireless.Event.from(msg);
+
+					synchronized(_wireless) {
+						for (sub in _wireless) {
+							sub(event)
+						}
 					}
 				}
 

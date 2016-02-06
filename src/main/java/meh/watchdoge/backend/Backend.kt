@@ -1,7 +1,8 @@
 package meh.watchdoge.backend;
 
+import meh.watchdoge.R;
 import meh.watchdoge.util.*;
-import meh.watchdoge.Command;
+import meh.watchdoge.backend.util.address;
 import meh.watchdoge.Request;
 import meh.watchdoge.request.family;
 import meh.watchdoge.request.command;
@@ -12,16 +13,22 @@ import android.util.Log;
 import android.text.TextUtils;
 import java.util.HashMap;
 import java.util.ArrayList;
+import java.util.HashSet;
 import org.jetbrains.anko.*;
-
-import meh.watchdoge.R;
 
 import android.app.Service;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.Bundle;
+
+import android.net.wifi.WifiManager;
+import android.net.wifi.WifiInfo;
+import android.net.NetworkInfo;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 
 import android.app.Notification;
 
@@ -35,6 +42,7 @@ import org.msgpack.core.MessageUnpacker;
 import org.msgpack.core.MessageTypeException;
 
 import java.io.IOException;
+import android.os.RemoteException;
 
 public class Backend(): Service() {
 	private          var _root:     Boolean = false;
@@ -44,14 +52,37 @@ public class Backend(): Service() {
 
 	private lateinit var _messenger: Messenger;
 
-	private var _request:  Int                                    = 0;
-	private var _requests: HashMap<Int, Pair<Messenger, Request>> = HashMap();
-	private var _sniffers: HashMap<Int, ArrayList<Messenger>>     = HashMap();
+	private var _request:  Int;
+	private val _requests: HashMap<Int, Pair<Messenger, Request>>;
+	private val _sniffers: HashMap<Int, HashSet<Messenger>>;
+	private val _wireless: HashSet<Messenger>;
+
+	init {
+		_request  = 0;
+		_requests = HashMap();
+
+		_sniffers = HashMap();
+		_wireless = HashSet();
+	}
 
 	private fun setting(name: String, body: (MessagePacker) -> Unit) {
 		_packer.packString(name);
 		body(_packer);
 		_packer.flush();
+	}
+
+	private fun response(msg: Message, status: Int, body: ((Bundle) -> Unit)? = null): Int {
+		val id = synchronized(_requests) {
+			_request += 1;
+			_request
+		};
+
+		try {
+			msg.replyTo?.response(msg.into(id), status, body);
+		}
+		catch (e: RemoteException) { }
+
+		return id;
 	}
 
 	override fun onCreate() {
@@ -80,6 +111,8 @@ public class Backend(): Service() {
 			.setSmallIcon(R.drawable.notification)
 			.build());
 
+		registerReceiver(Receiver(), IntentFilter(WifiManager.NETWORK_STATE_CHANGED_ACTION));
+
 		if (_root) {
 			Looper().start();
 		}
@@ -105,17 +138,6 @@ public class Backend(): Service() {
   }
 
 	inner class Handler(): android.os.Handler() {
-		private fun response(msg: Message, status: Int, body: ((Bundle) -> Unit)? = null): Int {
-			val id = synchronized(_requests) {
-				_request += 1;
-				_request
-			};
-
-			msg.replyTo?.response(msg.into(id), status, body);
-
-			return id;
-		}
-
 		private fun forward(msg: Message, body: (MessagePacker) -> Unit): Int {
 			val id = synchronized(_requests) {
 				_request += 1;
@@ -142,125 +164,247 @@ public class Backend(): Service() {
 				return;
 			}
 
-			when (msg.family()) {
-				Command.CONTROL -> {
-					when (msg.command()) {
-						Command.Control.ROOT -> {
-							response(msg, Command.SUCCESS) {
-								it.putBoolean("status", _root);
-							}
+			val handled = when (msg.family()) {
+				Command.CONTROL ->
+					Control().handle(msg)
 
-							return;
-						}
-					}
+				Command.SNIFFER ->
+					Sniffer().handle(msg)
+
+				Command.WIRELESS ->
+					Wireless().handle(msg)
+				
+				else ->
+					false
+			};
+
+			if (!handled) {
+				response(msg, Command.UNKNOWN)
+				super.handleMessage(msg);
+			}
+		}
+
+		inner class Control {
+			fun handle(msg: Message): Boolean {
+				when (msg.command()) {
+					Command.Control.ROOT ->
+						root(msg)
+
+					else ->
+						return false
 				}
 
-				Command.SNIFFER -> {
-					when (msg.command()) {
-						Command.Sniffer.CREATE -> {
-							var ip       = msg.getData().getString("ip");
-							var truncate = msg.getData().getInt("truncate");
+				return true;
+			}
 
-							if (ip == null) {
-								ip = wifiManager.getConnectionInfo().getIpAddress().let {
-									if (it != 0) {
-										"%d.%d.%d.%d".format(
-											((it       ) and 0xff),
-											((it shr  8) and 0xff),
-											((it shr 16) and 0xff),
-											((it shr 24) and 0xff))
-									}
-									else {
-										null
-									}
-								};
-							}
+			private fun root(msg: Message) {
+				response(msg, Command.SUCCESS) {
+					it.putBoolean("status", _root);
+				}
+			}
+		}
 
-							forward(msg) {
-								it.packInt(truncate);
+		inner class Sniffer {
+			fun handle(msg: Message): Boolean {
+				when (msg.command()) {
+					Command.Sniffer.CREATE ->
+						create(msg)
 
-								if (ip != null) {
-									it.packString(ip);
-								}
-								else {
-									it.packNil();
-								}
-							}
+					Command.Sniffer.START ->
+						start(msg)
 
-							return;
-						}
+					Command.Sniffer.FILTER ->
+						filter(msg)
 
-						Command.Sniffer.START -> {
-							val id = msg.getData().getInt("id");
+					Command.Sniffer.SUBSCRIBE ->
+						subscribe(msg)
 
-							forward(msg) {
-								it.packInt(id);
-							}
+					Command.Sniffer.UNSUBSCRIBE ->
+						unsubscribe(msg)
 
-							return;
-						}
+					else ->
+						return false
+				}
 
-						Command.Sniffer.FILTER -> {
-							val id     = msg.getData().getInt("id");
-							val filter = msg.getData().getString("filter");
+				return true;
+			}
 
-							forward(msg) {
-								it.packInt(id);
+			private fun create(msg: Message) {
+				var truncate = msg.getData().getInt("truncate");
+				var ip       = msg.getData().getString("ip")
+					?: address(wifiManager.getConnectionInfo().getIpAddress());
 
-								if (filter == null) {
-									it.packNil();
-								}
-								else {
-									it.packString(filter);
-								}
-							}
+				forward(msg) {
+					it.packInt(truncate);
 
-							return;
-						}
-
-						Command.Sniffer.SUBSCRIBE -> {
-							val id = msg.getData().getInt("id");
-
-							synchronized(_sniffers) {
-								if (!_sniffers.containsKey(id)) {
-									// TODO: send error
-								}
-								else {
-									val subscribers = _sniffers.get(id)!!;
-
-									if (!subscribers.contains(msg.replyTo)) {
-										subscribers.add(msg.replyTo);
-									}
-								}
-							}
-
-							return;
-						}
-
-						Command.Sniffer.UNSUBSCRIBE -> {
-							val id = msg.getData().getInt("id");
-
-							synchronized(_sniffers) {
-								if (!_sniffers.containsKey(id)) {
-									// TODO: send error
-								}
-								else {
-									val subscribers = _sniffers.get(id)!!;
-
-									if (subscribers.contains(msg.replyTo)) {
-										subscribers.remove(msg.replyTo);
-									}
-								}
-							}
-
-							return;
-						}
+					if (ip != null) {
+						it.packString(ip);
+					}
+					else {
+						it.packNil();
 					}
 				}
 			}
 
-			response(msg, Command.UNKNOWN)
-			super.handleMessage(msg);
+			private fun start(msg: Message) {
+				val id = msg.getData().getInt("id");
+
+				forward(msg) {
+					it.packInt(id);
+				}
+			}
+
+			private fun filter(msg: Message) {
+				val id     = msg.getData().getInt("id");
+				val filter = msg.getData().getString("filter");
+
+				forward(msg) {
+					it.packInt(id);
+
+					if (filter == null) {
+						it.packNil();
+					}
+					else {
+						it.packString(filter);
+					}
+				}
+			}
+
+			private fun subscribe(msg: Message) {
+				val id = msg.getData().getInt("id");
+
+				synchronized(_sniffers) {
+					if (!_sniffers.containsKey(id)) {
+						// TODO: send error
+					}
+					else {
+						_sniffers.get(id)!!.add(msg.replyTo);
+					}
+				}
+			}
+
+			private fun unsubscribe(msg: Message) {
+				val id = msg.getData().getInt("id");
+
+				synchronized(_sniffers) {
+					if (!_sniffers.containsKey(id)) {
+						// TODO: send error
+					}
+					else {
+						_sniffers.get(id)!!.remove(msg.replyTo);
+					}
+				}
+			}
+		}
+
+		inner class Wireless {
+			fun handle(msg: Message): Boolean {
+				when (msg.command()) {
+					Command.Wireless.STATUS ->
+						status(msg)
+
+					Command.Wireless.SUBSCRIBE ->
+						subscribe(msg)
+
+					Command.Wireless.UNSUBSCRIBE ->
+						unsubscribe(msg)
+					
+					else ->
+						return false
+				}
+
+				return true;
+			}
+
+			private fun status(msg: Message) {
+				response(msg, Command.SUCCESS) {
+					status(it);
+				}
+			}
+
+			private fun subscribe(msg: Message) {
+				synchronized(_wireless) {
+					_wireless.add(msg.replyTo);
+				}
+
+				response(msg, Command.SUCCESS);
+			}
+
+			private fun unsubscribe(msg: Message) {
+				synchronized(_wireless) {
+					_wireless.remove(msg.replyTo);
+				}
+
+				response(msg, Command.SUCCESS);
+			}
+
+			fun status(res: Bundle) {
+				if (wifiManager.isWifiEnabled()) {
+					val info = wifiManager.getConnectionInfo();
+					val dhcp = wifiManager.getDhcpInfo();
+
+					if (info.getIpAddress() != 0) {
+						res.putString("state", "connected");
+						res.putInt("rssi", info.getRssi());
+						res.putInt("strength", WifiManager.calculateSignalLevel(info.getRssi(), 100));
+
+						res.putParcelable("client", Bundle().tap {
+							it.putString("mac", info.getMacAddress());
+							it.putString("ip",  address(info.getIpAddress()));
+						});
+
+						res.putParcelable("router", Bundle().tap {
+							it.putString("mac", info.getBSSID());
+							it.putString("ssid", info.getSSID());
+
+							if (dhcp != null) {
+								it.putString("ip", address(dhcp.gateway));
+							}
+						});
+
+						if (dhcp != null) {
+							res.putString("netmask", address(dhcp.netmask));
+							res.putString("dns", address(dhcp.dns1));
+						}
+					}
+					else {
+						res.putString("state", "disconnected");
+					}
+				}
+				else {
+					res.putString("state", "disabled");
+				}
+			}
+		}
+	}
+
+	inner class Receiver(): android.content.BroadcastReceiver() {
+		override fun onReceive(@Suppress("UNUSED_PARAMETER") context: Context, intent: Intent) {
+			when (intent.getAction()) {
+				WifiManager.NETWORK_STATE_CHANGED_ACTION ->
+					wireless(intent)
+			}
+		}
+
+		private fun wireless(@Suppress("UNUSED_PARAMETER") intent: Intent) {
+			val message = Message.obtain().tap {
+				it.what = Command.Event.WIRELESS;
+				it.arg1 = Command.Event.Wireless.STATUS;
+			};
+
+			Handler().Wireless().status(message.getData());
+
+			synchronized(_wireless) {
+				_wireless.retainAll {
+					try {
+						it.send(message);
+						true
+					}
+					catch (e: RemoteException) {
+						false
+					}
+				}
+			}
 		}
 	}
 
@@ -284,7 +428,7 @@ public class Backend(): Service() {
 									val id = _unpacker.unpackInt();
 
 									synchronized(_sniffers) {
-										_sniffers.put(id, ArrayList());
+										_sniffers.put(id, HashSet());
 									}
 
 									messenger.response(request, status) {
@@ -310,6 +454,8 @@ public class Backend(): Service() {
 							val id      = _unpacker.unpackInt();
 							val message = Message.obtain().tap {
 								it.what = Command.Event.SNIFFER;
+								it.arg1 = Command.Event.Sniffer.PACKET;
+								it.arg2 = id;
 							}
 
 							val packet = message.getData();
@@ -360,10 +506,14 @@ public class Backend(): Service() {
 
 							synchronized(_sniffers) {
 								if (_sniffers.containsKey(id)) {
-									val subscribers = _sniffers.get(id)!!;
-
-									for (subscriber in subscribers) {
-										subscriber.send(message);
+									_sniffers.get(id)?.retainAll {
+										try {
+											it.send(message);
+											true
+										}
+										catch (e: RemoteException) {
+											false
+										}
 									}
 								}
 							}
