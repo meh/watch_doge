@@ -6,6 +6,9 @@ import meh.watchdoge.R;
 import org.jetbrains.anko.*;
 import android.util.Log;
 
+import nl.komponents.kovenant.*;
+import nl.komponents.kovenant.ui.*;
+
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
@@ -28,17 +31,15 @@ abstract class ProgressFragment(layout: Int): Fragment() {
 		load(_view, bundle);
 	}
 
-	fun show() {
-		async() {
-			uiThread {
-				val root     = getView()!!;
-				val progress = root.find<LinearLayout>(R.id.progress);
-				val content  = root.find<FrameLayout>(R.id.content);
+	fun show(): Promise<Unit, Exception> {
+		return promiseOnUi {
+			val root     = getView()!!;
+			val progress = root.find<LinearLayout>(R.id.progress);
+			val content  = root.find<FrameLayout>(R.id.content);
 
-				content.addView(_view);
-				progress.setVisibility(View.GONE);
-				content.setVisibility(View.VISIBLE);
-			}
+			content.addView(_view);
+			progress.setVisibility(View.GONE);
+			content.setVisibility(View.VISIBLE);
 		}
 	}
 
