@@ -6,6 +6,7 @@
 	android:gravity="center_horizontal"
 	android:orientation="vertical">
 
+	<!-- ROOT -->
 	<android.support.v7.widget.CardView
 		style="@style/Theme.WatchDoge.Card"
 		android:layout_width="match_parent"
@@ -13,26 +14,134 @@
 		android:layout_margin="8dp"
 		card_view:cardElevation="4dp">
 
+		<TextView android:id="@+id/whoami"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:background="@color/neutral"
+			android:textStyle="bold"
+			android:textSize="18dp"
+			android:padding="8dp"
+			android:gravity="center"
+			android:text="whoami" />
+	</android.support.v7.widget.CardView>
+
+	<!-- WIRELESS -->
+	<android.support.v7.widget.CardView
+		style="@style/Theme.WatchDoge.Card"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_marginLeft="8dp"
+		android:layout_marginRight="8dp"
+		android:layout_marginBottom="8dp"
+		card_view:cardElevation="4dp">
+
 		<LinearLayout
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
 			android:orientation="vertical">
 
-			<TextView android:id="@+id/whoami_header"
+			<!-- HEADER -->
+			<RelativeLayout
 				android:layout_width="match_parent"
-				android:layout_height="wrap_content"
-				android:background="@color/neutral"
-				android:textStyle="bold"
-				android:textSize="18sp"
-				android:padding="8dp"
-				android:gravity="center"
-				android:text="whoami" />
+				android:layout_height="wrap_content">
+				<TextView android:id="@+id/wireless_header"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:background="@color/neutral"
+					android:textStyle="bold"
+					android:textSize="18dp"
+					android:padding="8dp"
+					android:gravity="center"
+					android:text="Wireless" />
 
-			<TextView android:id="@+id/whoami_value"
+				<TextView android:id="@+id/wireless_rssi"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_centerVertical="true"
+					android:layout_alignParentRight="true"
+					android:textSize="12dp"
+					android:paddingRight="8dp"/>
+			</RelativeLayout>
+
+			<!-- INACTIVE -->
+			<TextView android:id="@+id/wireless_inactive"
+				android:visibility="gone"
 				android:layout_width="match_parent"
 				android:layout_height="wrap_content"
 				android:gravity="center"
 				android:padding="8dp" />
+
+			<!-- ACTIVE DETAILS -->
+			<LinearLayout android:id="@+id/wireless_active"
+				android:visibility="gone"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:orientation="vertical">
+
+				<!-- TOP -->
+				<LinearLayout
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:orientation="horizontal"
+					android:weightSum="1.0">
+	
+					<!-- CLIENT -->
+					<LinearLayout
+						android:layout_width="0dip"
+						android:layout_height="wrap_content"
+						android:layout_weight="0.5"
+						android:orientation="vertical"
+						android:padding="8dp">
+	
+						<!-- MAC -->
+						<TextView android:id="@+id/wireless_client_mac"
+							android:gravity="center"
+							android:layout_width="match_parent"
+							android:layout_height="wrap_content" />
+	
+						<!-- IP -->
+						<TextView android:id="@+id/wireless_client_ip"
+							android:gravity="center"
+							android:layout_width="match_parent"
+							android:layout_height="wrap_content" />
+					</LinearLayout>
+	
+					<com.joanzapata.iconify.widget.IconTextView
+						android:layout_width="wrap_content"
+						android:layout_height="match_parent"
+						android:gravity="center"
+						android:textSize="32dp"
+						android:textColor="@color/accent"
+						android:text="{md-chevron-right}" />
+	
+					<!-- ACCESS POINT -->
+					<LinearLayout
+						android:layout_width="0dip"
+						android:layout_height="wrap_content"
+						android:orientation="vertical"
+						android:layout_weight="0.5"
+						android:padding="8dp">
+	
+						<!-- MAC -->
+						<TextView android:id="@+id/wireless_router_mac"
+							android:gravity="center"
+							android:layout_width="match_parent"
+							android:layout_height="wrap_content" />
+	
+						<!-- IP -->
+						<TextView android:id="@+id/wireless_router_ip"
+							android:gravity="center"
+							android:layout_width="match_parent"
+							android:layout_height="wrap_content" />
+					</LinearLayout>
+				</LinearLayout>
+	
+				<TextView android:id="@+id/wireless_netmask"
+					android:gravity="center"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:layout_marginBottom="8dp" />
+			</LinearLayout>
 		</LinearLayout>
 	</android.support.v7.widget.CardView>
 </LinearLayout>
