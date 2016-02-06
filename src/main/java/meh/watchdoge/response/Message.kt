@@ -1,7 +1,7 @@
 package meh.watchdoge.response;
 
 import meh.watchdoge.Response;
-import meh.watchdoge.Command;
+import meh.watchdoge.backend.Command;
 
 import android.os.Bundle;
 import android.os.Message;

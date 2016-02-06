@@ -1,6 +1,6 @@
 package meh.watchdoge.request;
 
-import meh.watchdoge.Command;
+import meh.watchdoge.backend.Command;
 import android.os.Message;
 
 class Root(): Builder {

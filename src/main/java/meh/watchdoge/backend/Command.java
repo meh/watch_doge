@@ -1,4 +1,4 @@
-package meh.watchdoge;
+package meh.watchdoge.backend;
 
 final public class Command {
 	public static final int UNKNOWN = -1;
@@ -6,8 +6,9 @@ final public class Command {
 	public static final int SUCCESS = 0;
 	public static final int ERROR   = 1;
 
-	public static final int CONTROL = 0;
-	public static final int SNIFFER = 1;
+	public static final int CONTROL  = 0;
+	public static final int SNIFFER  = 1;
+	public static final int WIRELESS = 2;
 
 	final static public class Control {
 		public static final int PING  = 0;
@@ -16,7 +17,16 @@ final public class Command {
 	}
 
 	final static public class Event {
-		public static final int SNIFFER = 0xBADB011;
+		public static final int SNIFFER  = 0xBADB011;
+		public static final int WIRELESS = 0xBADB012;
+
+		final static public class Sniffer {
+			public static final int PACKET = 1;
+		}
+
+		final static public class Wireless {
+			public static final int STATUS = 1;
+		}
 	}
 
 	final static public class Sniffer {
@@ -40,5 +50,11 @@ final public class Command {
 		public static final int STOP    = 103;
 		public static final int FILTER  = 104;
 		public static final int GET     = 105;
+	}
+
+	final static public class Wireless {
+		public static final int STATUS      = 1;
+		public static final int SUBSCRIBE   = 2;
+		public static final int UNSUBSCRIBE = 3;
 	}
 }

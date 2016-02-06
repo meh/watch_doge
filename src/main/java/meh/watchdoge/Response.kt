@@ -1,6 +1,7 @@
 package meh.watchdoge;
 
 import android.os.Bundle;
+import meh.watchdoge.backend.Command;
 
 data class Response(val status: Int, val family: Int, val command: Int, val request: Bundle, val details: Bundle) {
 	fun isSuccess(): Boolean = status == Command.SUCCESS;
