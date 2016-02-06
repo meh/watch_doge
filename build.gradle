@@ -50,6 +50,10 @@ repositories {
 dependencies {
 	compile 'org.jetbrains.kotlin:kotlin-stdlib:1.+'
 
+	compile 'org.jetbrains.anko:anko-sdk19:+'
+	compile 'org.jetbrains.anko:anko-support-v4:+'
+	compile 'org.jetbrains.anko:anko-appcompat-v7:+'
+
 	compile 'nl.komponents.kovenant:kovenant-core:+'
 	compile 'nl.komponents.kovenant:kovenant-android:+'
 	compile 'nl.komponents.kovenant:kovenant-combine:+'
@@ -58,13 +62,11 @@ dependencies {
 	compile 'com.android.support:design:+'
 	compile 'com.android.support:cardview-v7:+'
 	compile 'com.android.support:recyclerview-v7:+'
-	compile 'me.zhanghai.android.materialprogressbar:library:1.1.4'
+	compile 'me.zhanghai.android.materialprogressbar:library:+'
+	compile 'com.joanzapata.iconify:android-iconify-material:+'
+	compile 'com.joanzapata.iconify:android-iconify-material-community:+'
 
-	compile 'org.jetbrains.anko:anko-sdk19:+'
-	compile 'org.jetbrains.anko:anko-support-v4:+'
-	compile 'org.jetbrains.anko:anko-appcompat-v7:+'
-
-	compile 'org.msgpack:msgpack-core:0.8.1'
+	compile 'org.msgpack:msgpack-core:+'
 }
 
 task packageExecutable(type: Copy) {

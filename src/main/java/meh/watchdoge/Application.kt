@@ -12,6 +12,10 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.FileOutputStream;
 
+import com.joanzapata.iconify.Iconify;
+import com.joanzapata.iconify.fonts.MaterialModule;
+import com.joanzapata.iconify.fonts.MaterialCommunityModule;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import android.content.pm.PackageManager.NameNotFoundException;
@@ -19,6 +23,8 @@ import android.content.pm.PackageManager.NameNotFoundException;
 public class Application(): android.app.Application() {
 	override fun onCreate() {
 		super.onCreate();
+
+		Iconify.with(MaterialModule()).with(MaterialCommunityModule());
 
 		try {
 			val installed = getFileStreamPath("backend");
