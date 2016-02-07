@@ -27,16 +27,16 @@ fun Pair<Messenger, Messenger>.request(body: Request.() -> Unit) {
 }
 
 fun Messenger.response(request: meh.watchdoge.Request, status: Int, body: ((Bundle) -> Unit)? = null) {
-	if (request.id == 0) {
+	if (request.id() == 0) {
 		return;
 	}
 
 	var msg = Message.obtain();
 
 	msg.what = status;
-	msg.arg1 = request.family;
-	msg.arg2 = request.command;
-	msg.obj  = request.details;
+	msg.arg1 = request.family();
+	msg.arg2 = request.command();
+	msg.obj  = request.bundle();
 
 	if (body != null) {
 		body(msg.getData());
