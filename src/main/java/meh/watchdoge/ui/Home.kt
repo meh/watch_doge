@@ -97,8 +97,16 @@ class Home(): ProgressFragment(R.layout.home) {
 			}
 
 			// netmask
-			view.find<TextView>(R.id.wireless_netmask).tap {
-				it.setText(netmask);
+			if (netmask != null) {
+				view.find<TextView>(R.id.wireless_netmask).tap {
+					it.setText(netmask);
+					it.setVisibility(View.VISIBLE);
+				}
+			}
+			else {
+				view.find<TextView>(R.id.wireless_netmask).tap {
+					it.setVisibility(View.GONE);
+				}
 			}
 
 			// show
