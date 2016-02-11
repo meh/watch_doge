@@ -3,7 +3,13 @@
 	<color name="accent">#b21818</color>
 	<color name="content">#111111</color>
 
+	<color name="text">#ffffff</color>
+	<color name="text_hint">#999999</color>
+	<color name="text_disabled">#dddddd</color>
+
 	<color name="neutral">#333333</color>
+	<color name="positive">#009900</color>
+	<color name="negative">#990000</color>
 	<color name="success">#006600</color>
 	<color name="failure">#660000</color>
 
@@ -12,7 +18,6 @@
 	<style name="Theme.WatchDoge" parent="Theme.AppCompat.NoActionBar">
 		<item name="colorPrimary">@color/primary</item>
 		<item name="colorAccent">@color/accent</item>
-		<item name="colorControlActivated">@color/accent</item>
 	</style>
 
 	<style name="Theme.WatchDoge.Toolbar" parent="ThemeOverlay.AppCompat.ActionBar">
@@ -22,6 +27,7 @@
 	<style name="Theme.WatchDoge.Tab.Layout" parent="Widget.Design.TabLayout">
 		<item name="tabTextAppearance">@style/Theme.WatchDoge.Tab.Text</item>
 		<item name="tabBackground">@drawable/tab_background</item>
+		<item name="colorControlActivated">@color/accent</item>
 	</style>
 
 	<style name="Theme.WatchDoge.Tab.Text" parent="TextAppearance.Design.Tab">
@@ -30,12 +36,44 @@
 	</style>
 
 	<style name="Theme.WatchDoge.ProgressBar" parent="Widget.MaterialProgressBar.ProgressBar">
+    <item name="mpb_progressStyle">circular</item>
+	</style>
 
+	<style name="Theme.WatchDoge.ProgressBar.Horizontal" parent="Widget.MaterialProgressBar.ProgressBar.Horizontal.NoPadding">
+    <item name="mpb_progressStyle">horizontal</item>
+		<item name="mpb_useIntrinsicPadding">false</item>
 	</style>
 
 	<style name="Theme.WatchDoge.Card" parent="CardView">
 		<item name="cardBackgroundColor">@color/card</item>
 		<item name="cardCornerRadius">0dp</item>
 		<item name="cardPreventCornerOverlap">false</item>
+	</style>
+
+	<style name="Theme.WatchDoge.Button.Icon" parent="Widget.AppCompat.Button.Borderless">
+		<item name="colorControlActivated">@color/accent</item>
+		<item name="colorControlHighlight">@color/accent</item>
+		<item name="colorControlNormal">@color/accent</item>
+
+		<item name="android:layout_width">32dp</item>
+		<item name="android:layout_height">32dp</item>
+		<item name="android:textSize">32dp</item>
+
+		<item name="android:background">@drawable/icon_button_background</item>
+
+		<item name="android:shadowDx">1</item>
+		<item name="android:shadowDy">1</item>
+		<item name="android:shadowRadius">9</item>
+	</style>
+
+	<style name="Theme.WatchDoge.Edit" parent="Widget.AppCompat.EditText">
+		<item name="colorControlHighlight">@color/accent</item>
+		<item name="colorControlNormal">@color/accent</item>
+		<item name="android:textColor">@drawable/edit_color</item>
+		<item name="android:textColorHint">@color/text_hint</item>
+	</style>
+
+	<style name="Theme.WatchDoge.Text.Error" parent="@android:style/TextAppearance.Widget.TextView">
+		<item name="android:textColor">@color/failure</item>
 	</style>
 </resources>
