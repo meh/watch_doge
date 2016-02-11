@@ -19,15 +19,7 @@ class Wireless(): Builder {
 		sub = Subscribe();
 	}
 
-	class Status(): Builder {
-		override fun build(msg: Message) {
-			msg.arg2 = Command.Wireless.STATUS;
-		}
-	}
-
-	class Subscribe(): Builder {
-		override fun build(msg: Message) {
-			msg.arg2 = Command.Wireless.SUBSCRIBE;
-		}
-	}
+	class Status(): As(Command.Wireless.STATUS);
+	class Subscribe(): As(Command.Wireless.SUBSCRIBE);
+	class Unsubscribe(): As(Command.Wireless.UNSUBSCRIBE);
 }

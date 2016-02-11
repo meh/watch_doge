@@ -12,11 +12,11 @@ class Sniffer(var id: Int?): Builder {
 	}
 
 	fun create() {
-		sub = Create(null, 0);
+		create() { }
 	}
 
 	fun create(body: Create.() -> Unit) {
-		val next = Create(null, 0);
+		val next = Create();
 		next.body();
 
 		sub = next;
@@ -34,12 +34,20 @@ class Sniffer(var id: Int?): Builder {
 		sub = Subscribe(id!!);
 	}
 
-	class Create(ip: String?, truncate: Int): Builder {
-		private var ip       = ip;
-		private var truncate = truncate;
+	fun unsubscribe() {
+		sub = Unsubscribe(id!!);
+	}
+
+	fun list() {
+		sub = List();
+	}
+
+	class Create(): As(Command.Sniffer.CREATE) {
+		var ip:       String? = null;
+		var truncate: Int     = 0;
 
 		override fun build(msg: Message) {
-			msg.arg2 = Command.Sniffer.CREATE;
+			super.build(msg);
 
 			if (ip != null) {
 				msg.getData().putString("ip", ip);
@@ -51,23 +59,14 @@ class Sniffer(var id: Int?): Builder {
 		}
 	}
 
-	class Start(id: Int): Builder {
-		private val id = id;
+	class Start(id: Int): WithId(id, Command.Sniffer.START);
+	class Stop(id: Int): WithId(id, Command.Sniffer.STOP);
+
+	class Filter(id: Int, filter: String?): WithId(id, Command.Sniffer.FILTER) {
+		val filter = filter;
 
 		override fun build(msg: Message) {
-			msg.arg2 = Command.Sniffer.START;
-			msg.getData().putInt("id", id);
-		}
-	}
-
-	class Filter(id: Int, filter: String?): Builder {
-		private val id     = id;
-		private val filter = filter;
-
-		override fun build(msg: Message) {
-			msg.arg2 = Command.Sniffer.FILTER;
-
-			msg.getData().putInt("id", id);
+			super.build(msg);
 
 			if (filter != null) {
 				msg.getData().putString("filter", filter);
@@ -75,12 +74,12 @@ class Sniffer(var id: Int?): Builder {
 		}
 	}
 
-	class Subscribe(id: Int): Builder {
-		private val id = id;
+	class Subscribe(id: Int): WithId(id, Command.Sniffer.SUBSCRIBE);
+	class Unsubscribe(id: Int): WithId(id, Command.Sniffer.UNSUBSCRIBE);
 
+	class List(): Builder {
 		override fun build(msg: Message) {
-			msg.arg2 = Command.Sniffer.SUBSCRIBE;
-			msg.getData().putInt("id", id);
+			msg.arg2 = Command.Sniffer.LIST;
 		}
 	}
 }

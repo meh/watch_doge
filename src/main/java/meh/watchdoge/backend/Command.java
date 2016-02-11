@@ -9,6 +9,7 @@ final public class Command {
 	public static final int CONTROL  = 0;
 	public static final int SNIFFER  = 1;
 	public static final int WIRELESS = 2;
+	public static final int PING     = 3;
 
 	final static public class Control {
 		public static final int PING  = 0;
@@ -19,6 +20,7 @@ final public class Command {
 	final static public class Event {
 		public static final int SNIFFER  = 0xBADB011;
 		public static final int WIRELESS = 0xBADB012;
+		public static final int PING     = 0xBADB013;
 
 		final static public class Sniffer {
 			public static final int PACKET = 1;
@@ -26,6 +28,11 @@ final public class Command {
 
 		final static public class Wireless {
 			public static final int STATUS = 1;
+		}
+
+		final static public class Ping {
+			public static final int SENT  = 1;
+			public static final int STATS = 2;
 		}
 	}
 
@@ -56,5 +63,15 @@ final public class Command {
 		public static final int STATUS      = 1;
 		public static final int SUBSCRIBE   = 2;
 		public static final int UNSUBSCRIBE = 3;
+	}
+
+	final static public class Ping {
+		public static final int SUBSCRIBE   = 1;
+		public static final int UNSUBSCRIBE = 2;
+
+		public static final int CREATE  = 3;
+		public static final int START   = 4;
+		public static final int STOP    = 5;
+		public static final int DESTROY = 6;
 	}
 }
