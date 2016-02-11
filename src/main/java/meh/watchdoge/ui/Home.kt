@@ -22,7 +22,7 @@ import android.widget.TextView;
 
 class Home(): ProgressFragment(R.layout.home) {
 	override fun load(view: View, bundle: Bundle?) {
-		backend() then { conn ->
+		backend() success { conn ->
 			conn.request { root() } successUi {
 				root(view, it.bundle())
 			} then { conn.request { wireless { status() } } successUi {
@@ -59,11 +59,11 @@ class Home(): ProgressFragment(R.layout.home) {
 	}
 
 	private fun wireless(view: View, status: Wireless.Status) {
-		val state = status.bundle().getString("state");
+		val state = status.bundle().getString("state")!!;
 
 		if (state == "connected") {
-			val client   = status.bundle().getParcelable<Bundle>("client");
-			val router   = status.bundle().getParcelable<Bundle>("router");
+			val client   = status.bundle().getParcelable<Bundle>("client")!!;
+			val router   = status.bundle().getParcelable<Bundle>("router")!!;
 			val netmask  = status.bundle().getString("netmask");
 			val strength = status.bundle().getInt("strength");
 
