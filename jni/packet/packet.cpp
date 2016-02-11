@@ -1,6 +1,5 @@
-#include <wd/common>
-#include <wd/packet/packer>
-#include <wd/packet/ether>
+#include <packet/common>
+#include <packet/ether>
 
 namespace wd {
 	namespace packet {

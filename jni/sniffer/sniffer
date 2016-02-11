@@ -1,17 +1,15 @@
 #pragma once
 
 #include <wd/common>
-#include <wd/packet/packer>
+#include <packet/common>
 
 namespace wd {
-	template<typename T, size_t MAX_BLOCK_SIZE = 512>
-	using queue = typename moodycamel::BlockingReaderWriterQueue<T, MAX_BLOCK_SIZE>;
-
 	class sniffer {
 		public:
 			struct command {
-				int                            request;
-				int                            type;
+				int request;
+				int type;
+
 				std::variant<std::optional<std::string>> data;
 			};
 

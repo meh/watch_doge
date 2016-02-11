@@ -29,10 +29,20 @@
 
 #include <wd/log>
 #include <wd/send>
+#include <wd/receiver>
+#include <wd/module>
+
+#define likely(x)   __builtin_expect((x),1)
+#define unlikely(x) __builtin_expect((x),0)
 
 namespace std {
 	using std::experimental::optional;
 	using std::experimental::make_optional;
 	using std::experimental::nullopt;
 	using mapbox::util::variant;
+}
+
+namespace wd {
+	template<typename T, size_t MAX_BLOCK_SIZE = 512>
+	using queue = typename moodycamel::BlockingReaderWriterQueue<T, MAX_BLOCK_SIZE>;
 }

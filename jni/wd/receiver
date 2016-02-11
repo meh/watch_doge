@@ -1,0 +1,19 @@
+#pragma once
+
+namespace wd {
+	class receiver {
+		public:
+			receiver(size_t chunk) : _chunk(chunk) { }
+			receiver() : receiver(512) { }
+
+			size_t parse();
+
+			const msgpack::object& next();
+
+		private:
+			size_t _chunk;
+
+			msgpack::unpacker _unpacker;
+			msgpack::unpacked _unpacked;
+	};
+}

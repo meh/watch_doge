@@ -1,7 +1,7 @@
-#include <wd/packet/unknown>
-#include <wd/packet/ether>
-#include <wd/packet/arp>
-#include <wd/packet/ip>
+#include <packet/unknown>
+#include <packet/ether>
+#include <packet/arp>
+#include <packet/ip>
 
 #include <string>
 #include <sstream>

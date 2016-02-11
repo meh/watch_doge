@@ -1,7 +1,7 @@
-#include <wd/packet/unknown>
-#include <wd/packet/ether>
-#include <wd/packet/ip>
-#include <wd/packet/tcp>
+#include <packet/unknown>
+#include <packet/ether>
+#include <packet/ip>
+#include <packet/tcp>
 
 namespace wd {
 	namespace packet {

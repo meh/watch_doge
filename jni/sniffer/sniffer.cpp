@@ -1,5 +1,5 @@
-#include <wd/sniffer>
-#include <wd/packet/ether>
+#include "sniffer"
+#include <packet/ether>
 
 namespace wd {
 	static
@@ -12,7 +12,7 @@ namespace wd {
 		bpf_u_int32 net;
 		assert(pcap_lookupnet(device.c_str(), &net, &mask, errbuf) >= 0);
 
-		pcap_t* session = pcap_open_live(device.c_str(), BUFSIZ, 1, 1000, errbuf);
+		pcap_t* session = pcap_open_live(device.c_str(), BUFSIZ, 1, 250, errbuf);
 		assert(session != NULL);
 
 		return std::make_tuple(session, net);
@@ -49,11 +49,11 @@ namespace wd {
 
 	static
 	void
-	_loop(int id, std::string device, std::shared_ptr<sniffer::cache> cache, std::shared_ptr<queue<sniffer::command>> queue) {
-		pcap_t*     session = NULL;
-		bpf_u_int32 netmask = 0;
-
-		sniffer::command   command;
+	_loop(int id, std::string device, std::shared_ptr<sniffer::cache> cache, std::shared_ptr<queue<sniffer::command>> queue)
+	{
+		pcap_t*          session = NULL;
+		bpf_u_int32      netmask = 0;
+		sniffer::command command;
 
 		while (true) {
 			if (session == NULL) {

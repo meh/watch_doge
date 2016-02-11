@@ -1,0 +1,11 @@
+#pragma once
+
+namespace wd {
+	class module {
+		public:
+			virtual void handle(receiver& recv, int request, int command) = 0;
+	};
+
+	std::unique_ptr<module> make_sniffer(std::string cache);
+	std::unique_ptr<module> make_pinger();
+}

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <wd/sniffer>
+#include <packet/common>
 
 #define ETHER_ADDR_LEN 6
 

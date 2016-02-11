@@ -7,8 +7,10 @@ namespace wd {
 		const int SUCCESS = 0;
 		const int ERROR   = 1;
 
-		const int CONTROL = 0;
-		const int SNIFFER = 1;
+		const int CONTROL  = 0;
+		const int SNIFFER  = 1;
+		const int WIRELESS = 2;
+		const int PING     = 3;
 
 		namespace control {
 			const int PING  = 0;
@@ -33,6 +35,13 @@ namespace wd {
 			const int STOP    = 103;
 			const int FILTER  = 104;
 			const int GET     = 105;
+		}
+
+		namespace ping {
+			const int CREATE  = 100;
+			const int START   = 101;
+			const int STOP    = 102;
+			const int DESTROY = 103;
 		}
 	}
 }

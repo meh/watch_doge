@@ -1,0 +1,26 @@
+#pragma once
+
+#include <wd/common>
+#include <packet/common>
+
+namespace wd {
+	class pinger {
+		public:
+			struct command {
+				int request;
+				int type;
+			};
+
+		public:
+			pinger(int id, std::string target, int64_t interval);
+			~pinger();
+
+		private:
+			int          _id;
+			std::string _target;
+			int64_t     _interval;
+
+			std::shared_ptr<queue<command>> _queue;
+			std::thread                     _thread;
+	};
+}

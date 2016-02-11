@@ -1,7 +1,6 @@
 #pragma once
 
-#include <wd/sniffer>
-#include <wd/packet/ether>
+#include <packet/ether>
 
 namespace wd {
 	namespace packet {

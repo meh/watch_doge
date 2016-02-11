@@ -1,5 +1,7 @@
 #pragma once
 
+#include <wd/common>
+
 namespace wd {
 	namespace packet {
 		typedef struct pcap_pkthdr header;
