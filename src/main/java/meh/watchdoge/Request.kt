@@ -13,8 +13,4 @@ class Request(id: Int, family: Int, command: Int, bundle: Bundle) {
 	fun family()  = _family;
 	fun command() = _command;
 	fun bundle()  = _bundle;
-
-	fun matches(family: Int, command: Int): Boolean {
-		return family() == family && command() == command;
-	}
 }

@@ -7,15 +7,7 @@ import android.os.Bundle;
 import android.os.Message;
 
 fun Message.isResponse(): Boolean {
-	return this.what < 0xBADB01 && this.replyTo == null;
-}
-
-fun Message.isSniffer(): Boolean {
-	return this.what == Command.Event.SNIFFER;
-}
-
-fun Message.isWireless(): Boolean {
-	return this.what == Command.Event.WIRELESS;
+	return this.what < 0xBADB010 && this.replyTo == null;
 }
 
 fun Message.status(): Int {

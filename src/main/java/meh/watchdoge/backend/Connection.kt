@@ -5,8 +5,6 @@ import java.util.ArrayDeque;
 import meh.watchdoge.util.*;
 import meh.watchdoge.Response;
 import meh.watchdoge.response.isResponse;
-import meh.watchdoge.response.isSniffer;
-import meh.watchdoge.response.isWireless;
 import meh.watchdoge.response.into;
 import meh.watchdoge.request.Request;
 
@@ -33,9 +31,11 @@ class Connection(context: Context, ready: (Connection) -> Unit) {
 	private          var _first:      Boolean;
 
 	private val _ready:    (Connection) -> Unit;
-	private var _requests: ArrayDeque<Deferred<Response, Response.Exception>>;
-	private var _sniffers: HashMap<Int, HashSet<(Sniffer.Event) -> Unit>>;
-	private var _wireless: HashSet<(Wireless.Event) -> Unit>;
+	private val _requests: ArrayDeque<Deferred<Response, Response.Exception>>;
+
+	private val _sniffer:  Sniffer.Connection;
+	private val _wireless: Wireless.Connection;
+	private val _pinger:   Pinger.Connection;
 
 	init {
 		_receiver   = Messenger(Handler());
@@ -44,8 +44,9 @@ class Connection(context: Context, ready: (Connection) -> Unit) {
 
 		_ready    = ready;
 		_requests = ArrayDeque();
-		_sniffers = HashMap();
-		_wireless = HashSet();
+		_sniffer  = Sniffer.Connection();
+		_pinger   = Pinger.Connection();
+		_wireless = Wireless.Connection();
 
 		context.bindService(context.intentFor<Backend>(),
 			_connection, Context.BIND_AUTO_CREATE);
@@ -67,22 +68,20 @@ class Connection(context: Context, ready: (Connection) -> Unit) {
 	inner class Subscriber {
 		fun sniffer(id: Int, body: (Sniffer.Event) -> Unit): Promise<Response, Response.Exception> {
 			return request { sniffer(id) { subscribe() } } success {
-				synchronized(_sniffers) {
-					if (!_sniffers.containsKey(id)) {
-						_sniffers.put(id, HashSet());
-					}
-
-					_sniffers.get(id)!!.add(body);
-				}
+				_sniffer.subscribe(id, body)
 			};
 		}
 
 		fun wireless(body: (Wireless.Event) -> Unit): Promise<Response, Response.Exception> {
 			return request { wireless { subscribe() } } success {
-				synchronized(_wireless) {
-					_wireless.add(body);
-				}
+				_wireless.subscribe(body)
 			};
+		}
+
+		fun pinger(id: Int, body: (Pinger.Event) -> Unit): Promise<Response, Response.Exception> {
+			return request { pinger(id) { subscribe() } } success {
+				_pinger.subscribe(id, body)
+			}
 		}
 	}
 
@@ -101,29 +100,14 @@ class Connection(context: Context, ready: (Connection) -> Unit) {
 					}
 				}
 
-				msg.isSniffer() -> {
-					val event = Sniffer.Event.from(msg);
+				_sniffer.handle(msg) ->
+					Unit
 
-					synchronized(_sniffers) {
-						val subs = _sniffers.get(event.owner());
+				_wireless.handle(msg) ->
+					Unit
 
-						if (subs != null) {
-							for (sub in subs) {
-								sub(event)
-							}
-						}
-					}
-				}
-
-				msg.isWireless() -> {
-					val event = Wireless.Event.from(msg);
-
-					synchronized(_wireless) {
-						for (sub in _wireless) {
-							sub(event)
-						}
-					}
-				}
+				_pinger.handle(msg) ->
+					Unit
 
 				else ->
 					super.handleMessage(msg)

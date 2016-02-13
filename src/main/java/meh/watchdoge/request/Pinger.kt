@@ -3,11 +3,11 @@ package meh.watchdoge.request;
 import meh.watchdoge.backend.Command;
 import android.os.Message;
 
-class Ping(var id: Int?): Builder {
+class Pinger(var id: Int?): Builder {
 	lateinit private var sub: Builder;
 
 	override fun build(msg: Message) {
-		msg.arg1 = Command.PING;
+		msg.arg1 = Command.PINGER;
 		sub.build(msg);
 	}
 
@@ -42,7 +42,7 @@ class Ping(var id: Int?): Builder {
 		sub = Destroy(id!!);
 	}
 
-	class Create(target: String): As(Command.Ping.CREATE) {
+	class Create(target: String): As(Command.Pinger.CREATE) {
 		var target   = target;
 		var interval = 0;
 
@@ -57,11 +57,11 @@ class Ping(var id: Int?): Builder {
 		}
 	}
 
-	class Destroy(id: Int): WithId(id, Command.Ping.DESTROY);
+	class Destroy(id: Int): WithId(id, Command.Pinger.DESTROY);
 
-	class Start(id: Int): WithId(id, Command.Ping.START);
-	class Stop(id: Int): WithId(id, Command.Ping.STOP);
+	class Start(id: Int): WithId(id, Command.Pinger.START);
+	class Stop(id: Int): WithId(id, Command.Pinger.STOP);
 
-	class Subscribe(id: Int): WithId(id, Command.Ping.SUBSCRIBE);
-	class Unsubscribe(id: Int): WithId(id, Command.Ping.UNSUBSCRIBE);
+	class Subscribe(id: Int): WithId(id, Command.Pinger.SUBSCRIBE);
+	class Unsubscribe(id: Int): WithId(id, Command.Pinger.UNSUBSCRIBE);
 }

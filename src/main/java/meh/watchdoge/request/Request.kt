@@ -32,14 +32,14 @@ class Request(var id: Int): Builder {
 		sub = next;
 	}
 
-	fun ping(id: Int?, body: Ping.() -> Unit) {
-		val next = Ping(id);
+	fun pinger(id: Int?, body: Pinger.() -> Unit) {
+		val next = Pinger(id);
 		next.body();
 
 		sub = next;
 	}
 
-	fun ping(body: Ping.() -> Unit) {
-		ping(null, body);
+	fun pinger(body: Pinger.() -> Unit) {
+		pinger(null, body);
 	}
 }
