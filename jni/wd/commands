@@ -10,12 +10,23 @@ namespace wd {
 		const int CONTROL  = 0;
 		const int SNIFFER  = 1;
 		const int WIRELESS = 2;
-		const int PING     = 3;
+		const int PINGER   = 3;
 
 		namespace control {
 			const int PING  = 0;
 			const int ROOT  = 1;
 			const int CLOSE = 2;
+		}
+
+		namespace event {
+			namespace sniffer {
+				const int PACKET = 1;
+			}
+
+			namespace pinger {
+				const int SENT  = 1;
+				const int STATS = 2;
+			}
 		}
 
 		namespace sniffer {
@@ -37,7 +48,7 @@ namespace wd {
 			const int GET     = 105;
 		}
 
-		namespace ping {
+		namespace pinger {
 			const int CREATE  = 100;
 			const int START   = 101;
 			const int STOP    = 102;

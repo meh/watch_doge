@@ -69,7 +69,7 @@ main (int argc, char* argv[])
 				sniffer->handle(recv, request, command);
 				break;
 
-			case wd::command::PING:
+			case wd::command::PINGER:
 				pinger->handle(recv, request, command);
 				break;
 
