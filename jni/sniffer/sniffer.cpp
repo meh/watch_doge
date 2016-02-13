@@ -129,6 +129,7 @@ namespace wd {
 					auto               pid    = cache->add(&header, packet);
 
 					wd::response(command::SNIFFER, id, [&](auto& packer) {
+						packer.pack(command::event::sniffer::PACKET);
 						wd::packet::pack(packer, pid, &header, packet);
 					});
 
