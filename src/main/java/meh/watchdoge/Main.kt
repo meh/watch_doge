@@ -65,7 +65,7 @@ class Main(): AppCompatActivity() {
 		override fun getItem(index: Int): Fragment {
 			return when (index) {
 				0 -> Home()
-				1 -> Sniff.Control()
+				1 -> Sniff()
 				2 -> Track()
 				3 -> Dig()
 				4 -> Stare()

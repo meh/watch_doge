@@ -16,7 +16,8 @@ import android.view.ViewGroup;
 import android.view.View;
 import android.widget.TextView;
 
-class Stare(): ProgressFragment(R.layout.home) {
+class Stare(): ProgressFragment(R.layout.stare) {
 	override fun load(view: View, bundle: Bundle?) {
+		show();
 	}
 }

@@ -4,7 +4,7 @@
 	android:layout_height="match_parent">
 
 	<LinearLayout
-		android:id="@+id/progress"
+		android:id="@+id/fragment_progress"
 		android:layout_width="match_parent"
 		android:layout_height="match_parent"
 		android:gravity="center">
@@ -17,7 +17,7 @@
 	</LinearLayout>
 
 	<FrameLayout
-		android:id="@+id/content"
+		android:id="@+id/fragment_content"
 		android:layout_width="match_parent"
 		android:layout_height="match_parent" />
 </FrameLayout>

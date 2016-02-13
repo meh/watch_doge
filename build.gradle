@@ -62,7 +62,10 @@ dependencies {
 	compile 'com.android.support:design:+'
 	compile 'com.android.support:cardview-v7:+'
 	compile 'com.android.support:recyclerview-v7:+'
+
 	compile 'me.zhanghai.android.materialprogressbar:library:+'
+	compile 'me.zhanghai.android.materialedittext:library:+'
+
 	compile 'com.joanzapata.iconify:android-iconify-material:+'
 	compile 'com.joanzapata.iconify:android-iconify-material-community:+'
 

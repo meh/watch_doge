@@ -34,8 +34,8 @@ abstract class ProgressFragment(layout: Int): Fragment() {
 	fun show(): Promise<Unit, Exception> {
 		return promiseOnUi {
 			val root     = getView()!!;
-			val progress = root.find<LinearLayout>(R.id.progress);
-			val content  = root.find<FrameLayout>(R.id.content);
+			val progress = root.find<LinearLayout>(R.id.fragment_progress);
+			val content  = root.find<FrameLayout>(R.id.fragment_content);
 
 			content.addView(_view);
 			progress.setVisibility(View.GONE);

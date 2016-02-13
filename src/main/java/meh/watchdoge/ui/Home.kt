@@ -35,6 +35,7 @@ class Home(): ProgressFragment(R.layout.home) {
 				wireless {
 					when (it) {
 						is Wireless.Status -> promiseOnUi {
+							Log.d("UI", it.bundle().toString());
 							wireless(view, it)
 						}
 					}

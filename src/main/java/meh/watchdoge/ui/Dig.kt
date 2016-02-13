@@ -16,7 +16,8 @@ import android.view.ViewGroup;
 import android.view.View;
 import android.widget.TextView;
 
-class Dig(): ProgressFragment(R.layout.home) {
+class Dig(): ProgressFragment(R.layout.dig) {
 	override fun load(view: View, bundle: Bundle?) {
+		show();
 	}
 }

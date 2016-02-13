@@ -1,0 +1,232 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
+              xmlns:card_view="http://schemas.android.com/apk/res-auto"
+	android:layout_width="match_parent"
+	android:layout_height="wrap_content"
+	android:orientation="vertical">
+
+	<!-- HEADER -->
+	<LinearLayout
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:orientation="horizontal"
+		android:padding="8dp"
+		android:background="@color/neutral">
+
+		<me.zhanghai.android.materialedittext.MaterialEditText android:id="@+id/target"
+			android:layout_width="0dp"
+			android:layout_height="wrap_content"
+			android:layout_weight="1"
+			android:layout_marginRight="8dp"
+			android:singleLine="true"
+			android:textSize="16dp"
+			android:hint="PING"
+			android:inputType="text|textNoSuggestions"
+			style="@style/Theme.WatchDoge.Edit" />
+
+		<com.joanzapata.iconify.widget.IconButton android:id="@+id/start"
+			android:textColor="@color/positive"
+			android:text="{md-play-arrow}"
+			style="@style/Theme.WatchDoge.Button.Icon" />
+
+		<com.joanzapata.iconify.widget.IconButton android:id="@+id/stop"
+			android:textColor="@color/negative"
+			android:text="{md-stop}"
+			android:visibility="gone"
+			style="@style/Theme.WatchDoge.Button.Icon" />
+
+		<com.joanzapata.iconify.widget.IconButton android:id="@+id/clear"
+			android:textColor="@color/negative"
+			android:text="{md-clear}"
+			android:visibility="gone"
+			style="@style/Theme.WatchDoge.Button.Icon" />
+	</LinearLayout>
+
+	<!-- CONTAINER -->
+	<LinearLayout android:id="@+id/active"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:orientation="vertical"
+		android:background="@color/card"
+		android:visibility="gone">
+
+		<me.zhanghai.android.materialprogressbar.MaterialProgressBar android:id="@+id/progress"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:indeterminate="true"
+			style="@style/Theme.WatchDoge.ProgressBar.Horizontal" />
+
+		<!-- ERROR -->
+		<TextView android:id="@+id/error"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:visibility="gone"
+			style="@style/Theme.WatchDoge.Text.Error" />
+
+		<!-- CONTENT -->
+		<LinearLayout android:id="@+id/ok"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:orientation="vertical"
+			android:padding="8dp"
+			android:visibility="gone">
+
+			<LinearLayout android:id="@+id/results"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:orientation="vertical">
+			</LinearLayout>
+
+			<!-- PACKET STATS -->
+			<android.support.v7.widget.CardView
+				style="@style/Theme.WatchDoge.Card"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:layout_marginBottom="4dp"
+				card_view:cardElevation="4dp">
+
+				<LinearLayout
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:orientation="horizontal">
+
+					<!-- SENT -->
+					<TextView
+						android:layout_width="0dp"
+						android:layout_height="wrap_content"
+						android:layout_weight="0.5"
+						android:padding="8dp"
+						android:background="@color/neutral"
+						android:text="TX" />
+
+					<TextView
+						android:layout_width="1dp"
+						android:layout_height="match_parent"
+						android:background="@color/card" />
+
+					<TextView android:id="@+id/packet_sent"
+						android:layout_width="wrap_content"
+						android:layout_height="wrap_content"
+						android:padding="8dp"
+						android:background="@color/neutral"
+						android:text="0" />
+
+					<TextView
+						android:layout_width="1dp"
+						android:layout_height="match_parent"
+						android:background="@color/card" />
+
+					<!-- PACKET LOSS -->
+					<TextView android:id="@+id/packet_loss"
+						android:layout_width="wrap_content"
+						android:layout_height="wrap_content"
+						android:padding="8dp"
+						android:background="@color/success"
+						android:text="0%" />
+
+					<TextView
+						android:layout_width="1dp"
+						android:layout_height="match_parent"
+						android:background="@color/card" />
+
+					<!-- RECEIVED -->
+					<TextView android:id="@+id/packet_received"
+						android:layout_width="wrap_content"
+						android:layout_height="wrap_content"
+						android:padding="8dp"
+						android:background="@color/neutral"
+						android:text="0" />
+
+					<TextView
+						android:layout_width="1dp"
+						android:layout_height="match_parent"
+						android:background="@color/card" />
+
+					<TextView
+						android:layout_width="0dp"
+						android:layout_height="wrap_content"
+						android:layout_weight="0.5"
+						android:gravity="right"
+						android:padding="8dp"
+						android:background="@color/neutral"
+						android:text="RX" />
+				</LinearLayout>
+			</android.support.v7.widget.CardView>
+
+			<!-- TIME STATS -->
+			<android.support.v7.widget.CardView
+				style="@style/Theme.WatchDoge.Card"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				card_view:cardElevation="4dp">
+
+				<LinearLayout
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:orientation="horizontal">
+
+					<!-- MINIMUM -->
+					<TextView
+						android:layout_width="0dp"
+						android:layout_height="wrap_content"
+						android:layout_weight="0.5"
+						android:padding="8dp"
+						android:background="@color/neutral"
+						android:text="MIN" />
+
+					<TextView
+						android:layout_width="1dp"
+						android:layout_height="match_parent"
+						android:background="@color/card" />
+
+					<TextView android:id="@+id/time_minimum"
+						android:layout_width="wrap_content"
+						android:layout_height="wrap_content"
+						android:padding="8dp"
+						android:background="@color/neutral"
+						android:text="0ms" />
+
+					<TextView
+						android:layout_width="1dp"
+						android:layout_height="match_parent"
+						android:background="@color/card" />
+
+					<!-- AVERAGE -->
+					<TextView android:id="@+id/time_average"
+						android:layout_width="wrap_content"
+						android:layout_height="wrap_content"
+						android:padding="8dp"
+						android:background="@color/success"
+						android:text="0ms" />
+
+					<TextView
+						android:layout_width="1dp"
+						android:layout_height="match_parent"
+						android:background="@color/card" />
+
+					<!-- MAXIMUM -->
+					<TextView android:id="@+id/time_maximum"
+						android:layout_width="wrap_content"
+						android:layout_height="wrap_content"
+						android:padding="8dp"
+						android:background="@color/neutral"
+						android:text="0ms" />
+
+					<TextView
+						android:layout_width="1dp"
+						android:layout_height="match_parent"
+						android:background="@color/card" />
+
+					<TextView
+						android:layout_width="0dp"
+						android:layout_height="wrap_content"
+						android:layout_weight="0.5"
+						android:gravity="right"
+						android:padding="8dp"
+						android:background="@color/neutral"
+						android:text="MAX" />
+				</LinearLayout>
+			</android.support.v7.widget.CardView>
+		</LinearLayout>
+	</LinearLayout>
+</LinearLayout>
