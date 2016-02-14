@@ -1,5 +1,4 @@
 package meh.watchdoge.backend;
-import android.util.Log;
 
 import java.util.HashSet;
 

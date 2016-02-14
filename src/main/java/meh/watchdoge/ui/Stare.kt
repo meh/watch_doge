@@ -1,7 +1,5 @@
 package meh.watchdoge.ui;
 
-import android.util.Log;
-
 import meh.watchdoge.R;
 import org.jetbrains.anko.*;
 import meh.watchdoge.ui.util.*;

@@ -7,8 +7,6 @@ import meh.watchdoge.Response;
 import nl.komponents.kovenant.android.startKovenant;
 import nl.komponents.kovenant.android.stopKovenant;
 
-import android.util.Log;
-
 import android.os.IBinder;
 import android.os.Bundle;
 import android.os.Messenger;

@@ -9,7 +9,6 @@ import meh.watchdoge.request.command;
 import meh.watchdoge.request.isRequest;
 import meh.watchdoge.request.into;
 
-import android.util.Log;
 import android.text.TextUtils;
 import java.util.HashMap;
 import java.util.ArrayList;
@@ -245,7 +244,7 @@ public class Backend(): Service() {
 			}
 			catch (e: MessageInsufficientBufferException) {
 				// TODO: warn the activity and try a restart
-				Log.e("B", "backend fucked up");
+				android.util.Log.e("B", "backend fucked up");
 			}
 		}
 	}

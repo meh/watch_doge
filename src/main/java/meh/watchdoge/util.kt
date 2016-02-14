@@ -1,7 +1,5 @@
 package meh.watchdoge.util;
 
-import android.util.Log;
-
 import android.os.Messenger;
 import android.os.Message;
 import android.os.Bundle;

@@ -4,7 +4,6 @@ import android.os.Bundle;
 
 import meh.watchdoge.R;
 import org.jetbrains.anko.*;
-import android.util.Log;
 
 import nl.komponents.kovenant.*;
 import nl.komponents.kovenant.ui.*;

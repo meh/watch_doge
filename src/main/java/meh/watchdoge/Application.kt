@@ -1,6 +1,5 @@
 package meh.watchdoge;
 
-import android.util.Log;
 import org.jetbrains.anko.*;
 
 import meh.watchdoge.backend.Backend;
@@ -46,7 +45,7 @@ public class Application(): android.app.Application() {
 		catch (e: NameNotFoundException) { /* won't happen */ }
 		catch (e: IOException) {
 			// TODO: report to user he dun goofed
-			Log.e("A", "backend installation failed");
+			android.util.Log.e("A", "backend installation failed");
 		}
 	}
 }
