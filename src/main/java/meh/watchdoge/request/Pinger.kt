@@ -3,12 +3,13 @@ package meh.watchdoge.request;
 import meh.watchdoge.backend.Command;
 import android.os.Message;
 
-class Pinger(var id: Int?): Builder {
-	lateinit private var sub: Builder;
+class Pinger(id: Int?): Builder {
+	private          val _id = id;
+	private lateinit var _next: Builder;
 
 	override fun build(msg: Message) {
 		msg.arg1 = Command.PINGER;
-		sub.build(msg);
+		_next.build(msg);
 	}
 
 	fun create(target: String) {
@@ -19,27 +20,27 @@ class Pinger(var id: Int?): Builder {
 		val next = Create(target);
 		next.body();
 
-		sub = next;
+		_next = next;
 	}
 
 	fun start() {
-		sub = Start(id!!);
+		_next = Start(_id!!);
 	}
 
 	fun stop() {
-		sub = Stop(id!!);
+		_next = Stop(_id!!);
 	}
 
 	fun subscribe() {
-		sub = Subscribe(id!!);
+		_next = Subscribe(_id!!);
 	}
 
 	fun unsubscribe() {
-		sub = Unsubscribe(id!!);
+		_next = Unsubscribe(_id!!);
 	}
 
 	fun destroy() {
-		sub = Destroy(id!!);
+		_next = Destroy(_id!!);
 	}
 
 	class Create(target: String): As(Command.Pinger.CREATE) {

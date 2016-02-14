@@ -4,19 +4,19 @@ import meh.watchdoge.backend.Command;
 import android.os.Message;
 
 class Wireless(): Builder {
-	lateinit private var sub: Builder;
+	private lateinit var _next: Builder;
 
 	override fun build(msg: Message) {
 		msg.arg1 = Command.WIRELESS;
-		sub.build(msg);
+		_next.build(msg);
 	}
 
 	fun status() {
-		sub = Status();
+		_next = Status();
 	}
 
 	fun subscribe() {
-		sub = Subscribe();
+		_next = Subscribe();
 	}
 
 	class Status(): As(Command.Wireless.STATUS);

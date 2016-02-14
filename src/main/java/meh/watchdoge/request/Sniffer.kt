@@ -3,12 +3,13 @@ package meh.watchdoge.request;
 import meh.watchdoge.backend.Command;
 import android.os.Message;
 
-class Sniffer(var id: Int?): Builder {
-	lateinit private var sub: Builder;
+class Sniffer(id: Int?): Builder {
+	private          val _id = id;
+	private lateinit var _next: Builder;
 
 	override fun build(msg: Message) {
 		msg.arg1 = Command.SNIFFER;
-		sub.build(msg);
+		_next.build(msg);
 	}
 
 	fun create() {
@@ -19,27 +20,27 @@ class Sniffer(var id: Int?): Builder {
 		val next = Create();
 		next.body();
 
-		sub = next;
+		_next = next;
 	}
 
 	fun start() {
-		sub = Start(id!!);
+		_next = Start(_id!!);
 	}
 
 	fun filter(filter: String?) {
-		sub = Filter(id!!, filter);
+		_next = Filter(_id!!, filter);
 	}
 
 	fun subscribe() {
-		sub = Subscribe(id!!);
+		_next = Subscribe(_id!!);
 	}
 
 	fun unsubscribe() {
-		sub = Unsubscribe(id!!);
+		_next = Unsubscribe(_id!!);
 	}
 
 	fun list() {
-		sub = List();
+		_next = List();
 	}
 
 	class Create(): As(Command.Sniffer.CREATE) {
