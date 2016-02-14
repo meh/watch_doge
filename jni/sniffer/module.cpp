@@ -10,35 +10,53 @@ class sniffer: public wd::module {
 		void handle(wd::receiver& recv, int request, int command);
 
 		void create(wd::receiver& recv, int request);
-		void start(wd::receiver& recv, int request);
-		void filter(wd::receiver& recv, int request);
-		void get(wd::receiver& recv, int request);
+		void start(wd::receiver& recv, int request, int id);
+		void filter(wd::receiver& recv, int request, int id);
+		void get(wd::receiver& recv, int request, int id);
 
 	private:
 		std::string _cache;
 
-		std::map<int, wd::sniffer> _map;
 		int                        _id;
+		std::map<int, wd::sniffer> _map;
 };
 
 void
 sniffer::handle(wd::receiver& recv, int request, int command)
 {
+	int id = 0;
+
+	switch (command) {
+		case wd::command::sniffer::START:
+		case wd::command::sniffer::FILTER:
+		case wd::command::sniffer::GET: {
+			id = recv.next().as<int32_t>();
+
+			if (_map.find(id) == _map.end()) {
+				wd::response(wd::command::CONTROL, request, [](auto& packer) {
+					packer.pack(wd::command::sniffer::error::NOT_FOUND);
+				});
+
+				return;
+			}
+		}
+	}
+
 	switch (command) {
 		case wd::command::sniffer::CREATE:
 			create(recv, request);
 			break;
 
 		case wd::command::sniffer::START:
-			start(recv, request);
+			start(recv, request, id);
 			break;
 
 		case wd::command::sniffer::FILTER:
-			filter(recv, request);
+			filter(recv, request, id);
 			break;
 
 		case wd::command::sniffer::GET:
-			get(recv, request);
+			get(recv, request, id);
 			break;
 
 		default:
@@ -80,34 +98,15 @@ sniffer::create(wd::receiver& recv, int request)
 }
 
 void
-sniffer::start(wd::receiver& recv, int request)
+sniffer::start(wd::receiver& recv, int request, int id)
 {
-	auto id = recv.next().as<int32_t>();
-
-	if (_map.find(id) == _map.end()) {
-		wd::response(wd::command::CONTROL, request, [](auto& packer) {
-			packer.pack(wd::command::sniffer::error::NOT_FOUND);
-		});
-
-		return;
-	}
-
 	_map.at(id).start(request);
 }
 
 void
-sniffer::filter(wd::receiver& recv, int request)
+sniffer::filter(wd::receiver& recv, int request, int id)
 {
-	auto id      = recv.next().as<int32_t>();
-	auto filter  = recv.next();
-
-	if (_map.find(id) == _map.end()) {
-		wd::response(wd::command::CONTROL, request, [](auto& packer) {
-			packer.pack(wd::command::sniffer::error::NOT_FOUND);
-		});
-
-		return;
-	}
+	auto filter = recv.next();
 
 	if (filter.is_nil()) {
 		_map.at(id).filter(request, std::nullopt);
@@ -118,18 +117,9 @@ sniffer::filter(wd::receiver& recv, int request)
 }
 
 void
-sniffer::get(wd::receiver& recv, int request)
+sniffer::get(wd::receiver& recv, int request, int id)
 {
-	auto id  = recv.next().as<int32_t>();
 	auto pid = recv.next().as<int32_t>();
-
-	if (_map.find(id) == _map.end()) {
-		wd::response(wd::command::CONTROL, request, [](auto& packer) {
-			packer.pack(wd::command::sniffer::error::NOT_FOUND);
-		});
-
-		return;
-	}
 
 	if (auto packet = _map.at(id).get(pid)) {
 		wd::response(wd::command::CONTROL, request, [](auto& packer) {

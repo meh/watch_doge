@@ -144,22 +144,16 @@ namespace wd {
 	sniffer::sniffer(int id, std::string device, std::string cache, uint32_t truncate)
 		: _id(id),
 		  _device(device),
-		  _queue(std::make_shared<queue<sniffer::command>>(1))
+		  _queue(std::make_shared<queue<command>>(1)),
+			_cache(std::make_shared<sniffer::cache>(cache, id, truncate))
 	{
-		if (truncate == 0) {
-			_cache = std::make_shared<sniffer::cache>(cache, id);
-		}
-		else {
-			_cache = std::make_shared<sniffer::cache>(cache, id, truncate);
-		}
-
 		_thread  = std::thread(_loop, _id, _device, _cache, _queue);
 		_thread.detach();
 	}
 
 	sniffer::~sniffer()
 	{
-		_queue->enqueue(sniffer::command {
+		_queue->enqueue(command {
 			.request = 0,
 			.type    = wd::command::sniffer::DESTROY,
 		});
@@ -168,7 +162,7 @@ namespace wd {
 	void
 	sniffer::start(int request)
 	{
-		_queue->enqueue(sniffer::command {
+		_queue->enqueue(command {
 			.request = request,
 			.type    = wd::command::sniffer::START,
 		});
@@ -177,7 +171,7 @@ namespace wd {
 	void
 	sniffer::filter(int request, std::optional<std::string> flt)
 	{
-		_queue->enqueue(sniffer::command {
+		_queue->enqueue(command {
 			.request = request,
 			.type    = wd::command::sniffer::FILTER,
 			.data    = flt,
@@ -187,7 +181,7 @@ namespace wd {
 	void
 	sniffer::stop(int request)
 	{
-		_queue->enqueue(sniffer::command {
+		_queue->enqueue(command {
 			.request = request,
 			.type    = wd::command::sniffer::STOP,
 		});
@@ -200,11 +194,14 @@ namespace wd {
 	}
 
 	sniffer::cache::cache(std::string path, int id, uint32_t truncate)
-		: _id(0), _offset(sizeof(sniffer::cache::header)), _truncate(truncate)
+		: _id(0),
+		  _offset(sizeof(sniffer::cache::header))
 	{
+		_truncate = truncate ?: 65535;
+
 		std::stringstream builder;
 
-		builder << path << "/" << id << ".pcap";
+		builder << path << "/sniffer." << id << ".pcap";
 		_session = builder.str();
 
 		builder << ".index";
@@ -225,7 +222,7 @@ namespace wd {
 			.thiszone = 0,
 			.sigfigs  = 0,
 
-			.snaplen = truncate,
+			.snaplen = _truncate,
 			.network = 1,
 		};
 

@@ -29,7 +29,7 @@ namespace wd {
 					};
 
 				public:
-					cache(std::string path, int id, uint32_t truncate = 65535);
+					cache(std::string path, int id, uint32_t truncate);
 
 				public:
 					uint32_t
