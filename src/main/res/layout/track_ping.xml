@@ -19,6 +19,7 @@
 			android:layout_weight="1"
 			android:layout_marginRight="8dp"
 			android:singleLine="true"
+			android:imeOptions="actionSearch"
 			android:textSize="16dp"
 			android:hint="PING"
 			android:inputType="text|textNoSuggestions"

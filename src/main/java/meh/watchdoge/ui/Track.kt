@@ -6,17 +6,21 @@ import meh.watchdoge.R;
 import meh.watchdoge.ui.util.*;
 import meh.watchdoge.util.*;
 import org.jetbrains.anko.*;
-import nl.komponents.kovenant.*
+import nl.komponents.kovenant.*;
 import nl.komponents.kovenant.ui.*;
+import nl.komponents.kovenant.functional.*;
 
 import android.os.Bundle;
 import meh.watchdoge.backend.Connection;
+import meh.watchdoge.backend.Pinger;
+import meh.watchdoge.Response;
 
 import android.content.Context;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.widget.TextView;
 import android.widget.Button;
 import android.widget.EditText;
@@ -39,7 +43,7 @@ class Track(): ProgressFragment(R.layout.track) {
 				else {
 					view.find<View>(R.id.unsupported).setVisibility(View.VISIBLE);
 				}
-			} then {
+			} bind {
 				if (it.bundle().getBoolean("status")) {
 					Promise.of(true)
 				}
@@ -47,37 +51,7 @@ class Track(): ProgressFragment(R.layout.track) {
 					Promise.ofFail(RuntimeException("not rooted"))
 				}
 			} then {
-				var id = 0;
-
-				ping.onStart {
-					start();
-
-					conn.request { pinger { create(ping.target()) } } then {
-						id = it.bundle().getInt("id");
-
-						conn.request {
-							pinger(id) { start() }
-						} then {
-							conn.subscribe {
-								pinger(id) {
-									// uguu~
-								}
-							}
-						} successUi {
-							ok();
-						}
-					} failUi {
-						error("Something happened :(")
-					}
-				}
-
-				ping.onStop {
-					stop();
-				}
-
-				ping.onClear {
-					clear();
-				}
+				ping.connect(conn);
 			} always {
 				show()
 			}
@@ -85,9 +59,78 @@ class Track(): ProgressFragment(R.layout.track) {
 	}
 
 	class Ping(context: Context): Component(context, R.layout.track_ping) {
+		private var id                                 = 0;
+		private var subscriber: Connection.Subscriber? = null;
+
+		fun connect(conn: Connection) {
+			onStart {
+				start();
+
+				if (id == 0) {
+					conn.request { pinger { create(target()) } } bind {
+						id = it.bundle().getInt("id");
+
+						conn.subscribe {
+							pinger(id) {
+								promiseOnUi {
+									update(it)
+								}
+							}
+						}
+					} then {
+						subscriber = it;
+					}
+				}
+				else {
+					Promise.of(0)
+				} bind {
+					conn.request { pinger(id) { start() } }
+				} successUi {
+					ok()
+				} failUi {
+					error("Something happened :(")
+				}
+			}
+
+			onStop {
+				conn.request { pinger(id) { stop() } } successUi {
+					stop()
+				} failUi {
+					error("Something happened :(")
+				}
+			}
+
+			onClear {
+				subscriber?.unsubscribe();
+
+				if (id != 0) {
+					conn.request { pinger(id) { destroy() } }
+				}
+				else {
+					Promise.of(0)
+				} then {
+					id = 0
+				} successUi {
+					clear()
+				} failUi {
+					error("Something happened :(")
+				}
+			}
+		}
+
 		fun onStart(block: Ping.() -> Unit) {
 			view.find<Button>(R.id.start).onClick {
 				this.block();
+			}
+
+			view.find<EditText>(R.id.target).onEditorAction { view, id, event ->
+				if (id == EditorInfo.IME_ACTION_SEARCH) {
+					this.block();
+					true
+				}
+				else {
+					false
+				}
 			}
 		}
 
@@ -105,6 +148,10 @@ class Track(): ProgressFragment(R.layout.track) {
 
 		fun target(): String {
 			return view.find<EditText>(R.id.target).getText().toString().trim();
+		}
+
+		fun update(event: Pinger.Event) {
+			Log.d("UI", "PINGER/UPDATE: ${event}");
 		}
 
 		fun start() {
@@ -126,6 +173,8 @@ class Track(): ProgressFragment(R.layout.track) {
 		}
 
 		fun error(text: String) {
+			id = 0;
+
 			// button
 			view.find<View>(R.id.start).setVisibility(View.GONE);
 			view.find<View>(R.id.stop).setVisibility(View.GONE);
@@ -164,6 +213,7 @@ class Track(): ProgressFragment(R.layout.track) {
 
 		fun clear() {
 			// edit
+			view.find<EditText>(R.id.target).setText("");
 			view.find<EditText>(R.id.target).enable();
 
 			// packets
