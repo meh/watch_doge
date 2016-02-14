@@ -48,10 +48,22 @@ class Wireless {
 	class Connection {
 		private val _subscribers: HashSet<(Event) -> Unit> = HashSet();
 
-		fun subscribe(body: (Event) -> Unit) {
+		inner class Subscriber(body: (Event) -> Unit): meh.watchdoge.backend.Connection.Subscriber {
+			private val _body = body;
+
+			override fun unsubscribe() {
+				synchronized(_subscribers) {
+					_subscribers.remove(_body)
+				}
+			}
+		}
+
+		fun subscribe(body: (Event) -> Unit): Subscriber {
 			synchronized(_subscribers) {
 				_subscribers.add(body);
 			}
+
+			return Subscriber(body);
 		}
 
 		fun handle(msg: Message): Boolean {
@@ -128,8 +140,6 @@ class Wireless {
 		}
 
 		private fun status(res: Bundle) {
-			Log.d("UI", "wireless: status");
-
 			if (wifiManager.isWifiEnabled()) {
 				val info = wifiManager.getConnectionInfo();
 				val dhcp = wifiManager.getDhcpInfo();

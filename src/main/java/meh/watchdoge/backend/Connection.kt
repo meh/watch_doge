@@ -55,31 +55,37 @@ class Connection(context: Context, ready: (Connection) -> Unit) {
 	fun request(body: Request.() -> Unit): Promise<Response, Response.Exception> {
 		val req = deferred<Response, Response.Exception>();
 
-		_requests.add(req);
-		(_sender to _receiver).request(body)
+		synchronized(_requests) {
+			_requests.add(req);
+			(_sender to _receiver).request(body)
+		}
 
 		return req.promise;
 	}
 
-	fun subscribe(body: Subscriber.() -> Promise<Response, Response.Exception>): Promise<Response, Response.Exception> {
-		return Subscriber().body();
+	fun subscribe(body: Subscribe.() -> Promise<Subscriber, Exception>): Promise<Subscriber, Exception> {
+		return Subscribe().body();
 	}
 
-	inner class Subscriber {
-		fun sniffer(id: Int, body: (Sniffer.Event) -> Unit): Promise<Response, Response.Exception> {
-			return request { sniffer(id) { subscribe() } } success {
+	interface Subscriber {
+		fun unsubscribe();
+	}
+
+	inner class Subscribe {
+		fun sniffer(id: Int, body: (Sniffer.Event) -> Unit): Promise<Subscriber, Exception> {
+			return request { sniffer(id) { subscribe() } } then {
 				_sniffer.subscribe(id, body)
 			};
 		}
 
-		fun wireless(body: (Wireless.Event) -> Unit): Promise<Response, Response.Exception> {
-			return request { wireless { subscribe() } } success {
+		fun wireless(body: (Wireless.Event) -> Unit): Promise<Subscriber, Exception> {
+			return request { wireless { subscribe() } } then {
 				_wireless.subscribe(body)
 			};
 		}
 
-		fun pinger(id: Int, body: (Pinger.Event) -> Unit): Promise<Response, Response.Exception> {
-			return request { pinger(id) { subscribe() } } success {
+		fun pinger(id: Int, body: (Pinger.Event) -> Unit): Promise<Subscriber, Exception> {
+			return request { pinger(id) { subscribe() } } then {
 				_pinger.subscribe(id, body)
 			}
 		}
@@ -90,7 +96,7 @@ class Connection(context: Context, ready: (Connection) -> Unit) {
 			when {
 				msg.isResponse() -> {
 					val response = msg.into();
-					val promise  = _requests.remove();
+					val promise  = synchronized(_requests) { _requests.remove() };
 
 					if (response.isSuccess()) {
 						promise.resolve(response);

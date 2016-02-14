@@ -46,7 +46,18 @@ class Sniffer {
 	class Connection {
 		private val _subscribers: HashMap<Int, HashSet<(Event) -> Unit>> = HashMap();
 
-		fun subscribe(id: Int, body: (Event) -> Unit) {
+		inner class Subscriber(id: Int, body: (Event) -> Unit): meh.watchdoge.backend.Connection.Subscriber {
+			private val _id   = id;
+			private val _body = body;
+
+			override fun unsubscribe() {
+				synchronized(_subscribers) {
+					_subscribers.get(_id)?.remove(_body)
+				}
+			}
+		}
+
+		fun subscribe(id: Int, body: (Event) -> Unit): Subscriber  {
 			synchronized(_subscribers) {
 				if (!_subscribers.containsKey(id)) {
 					_subscribers.put(id, HashSet());
@@ -54,6 +65,8 @@ class Sniffer {
 
 				_subscribers.get(id)!!.add(body);
 			}
+
+			return Subscriber(id, body);
 		}
 
 		fun handle(msg: Message): Boolean {
@@ -274,10 +287,11 @@ class Sniffer {
 
 			synchronized(_subscribers) {
 				if (!_subscribers.containsKey(id)) {
-					// TODO: send error
+					response(msg, Command.Sniffer.Error.NOT_FOUND);
 				}
 				else {
 					_subscribers.get(id)!!.add(msg.replyTo);
+					response(msg, Command.SUCCESS);
 				}
 			}
 		}

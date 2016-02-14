@@ -40,7 +40,18 @@ class Pinger {
 	class Connection {
 		private val _subscribers: HashMap<Int, HashSet<(Event) -> Unit>> = HashMap();
 
-		fun subscribe(id: Int, body: (Event) -> Unit) {
+		inner class Subscriber(id: Int, body: (Event) -> Unit): meh.watchdoge.backend.Connection.Subscriber {
+			private val _id   = id;
+			private val _body = body;
+
+			override fun unsubscribe() {
+				synchronized(_subscribers) {
+					_subscribers.get(_id)?.remove(_body)
+				}
+			}
+		}
+
+		fun subscribe(id: Int, body: (Event) -> Unit): Subscriber {
 			synchronized(_subscribers) {
 				if (!_subscribers.containsKey(id)) {
 					_subscribers.put(id, HashSet());
@@ -48,6 +59,8 @@ class Pinger {
 
 				_subscribers.get(id)!!.add(body);
 			}
+
+			return Subscriber(id, body);
 		}
 
 		fun handle(msg: Message): Boolean {
@@ -72,6 +85,8 @@ class Pinger {
 	}
 
 	class Module(backend: Backend): meh.watchdoge.backend.Module(backend) {
+		private val _subscribers: HashMap<Int, HashSet<Messenger>> = HashMap();
+
 		override fun request(msg: Message): Boolean {
 			when (msg.command()) {
 				Command.Pinger.CREATE ->
@@ -100,31 +115,83 @@ class Pinger {
 		}
 
 		override fun receive() {
-			// uguu~
+			val id    = _unpacker.unpackInt();
+			val event = _unpacker.unpackInt();
+
+			when (event) {
+				Command.Event.Pinger.SENT ->
+					Unit
+
+				Command.Event.Pinger.STATS ->
+					Unit
+			}
 		}
 
 		override fun response(messenger: Messenger, request: Request, status: Int) {
-			// uguu~
+			when (request.command()) {
+				Command.Pinger.CREATE -> {
+					val id = _unpacker.unpackInt();
+
+					synchronized(_subscribers) {
+						_subscribers.put(id, HashSet());
+					}
+
+					messenger.response(request, status) {
+						it.putInt("id", id);
+					}
+				}
+
+				else ->
+					messenger.response(request, status)
+			}
 		}
 
 		private fun create(msg: Message) {
-			// TODO: uguu~
+			var target   = msg.getData().getString("target");
+			var interval = msg.getData().getInt("interval");
+
+			forward(msg) {
+				it.packString(target);
+				it.packInt(interval);
+			}
 		}
 
 		private fun start(msg: Message) {
-			// TODO: uguu~
+			val id = msg.getData().getInt("id");
+
+			forward(msg) {
+				it.packInt(id);
+			}
 		}
 
 		private fun stop(msg: Message) {
-			// TODO: uguu~
+			val id = msg.getData().getInt("id");
+
+			forward(msg) {
+				it.packInt(id);
+			}
 		}
 
 		private fun destroy(msg: Message) {
-			// TODO: uguu~
+			val id = msg.getData().getInt("id");
+
+			forward(msg) {
+				it.packInt(id);
+			}
 		}
 
 		private fun subscribe(msg: Message) {
-			// TODO: uguu~
+			val id = msg.getData().getInt("id");
+
+			synchronized(_subscribers) {
+				if (!_subscribers.containsKey(id)) {
+					response(msg, Command.Pinger.Error.NOT_FOUND);
+				}
+				else {
+					_subscribers.get(id)!!.add(msg.replyTo);
+					response(msg, Command.SUCCESS);
+				}
+			}
 		}
 
 		private fun unsubscribe(msg: Message) {
