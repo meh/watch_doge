@@ -57,6 +57,7 @@ dependencies {
 	compile 'nl.komponents.kovenant:kovenant-core:+'
 	compile 'nl.komponents.kovenant:kovenant-android:+'
 	compile 'nl.komponents.kovenant:kovenant-combine:+'
+	compile 'nl.komponents.kovenant:kovenant-functional:+'
 
 	compile 'com.android.support:appcompat-v7:+'
 	compile 'com.android.support:design:+'
