@@ -49,6 +49,16 @@ namespace wd {
 		}
 
 		namespace pinger {
+			namespace error {
+				const int ALREADY_STARTED = 2;
+				const int NOT_STARTED     = 3;
+
+				const int ALREADY_EXISTS = 4;
+				const int NOT_FOUND      = 5;
+				const int INVALID_TARGET = 6;
+				const int SOCKET_ERROR   = 7;
+			}
+
 			const int CREATE  = 100;
 			const int START   = 101;
 			const int STOP    = 102;

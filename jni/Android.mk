@@ -2,13 +2,12 @@ LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
 
-LOCAL_MODULE    := backend
-LOCAL_CPPFLAGS  := -std=gnu++1y -fdiagnostics-color=always -fexceptions -frtti
-LOCAL_LDLIBS    := -llog
+LOCAL_MODULE := backend
+LOCAL_LDLIBS := -llog
 
 LOCAL_SRC_FILES := main.cpp send.cpp receiver.cpp device.cpp \
 	sniffer/sniffer.cpp sniffer/module.cpp \
-	pinger/module.cpp \
+	pinger/module.cpp pinger/pinger.cpp \
 	packet/packet.cpp packet/unknown.cpp packet/ether.cpp packet/arp.cpp packet/ip.cpp packet/icmp.cpp packet/tcp.cpp
 
 LOCAL_C_INCLUDES += jni/vendor/pcap

@@ -8,4 +8,11 @@ namespace wd {
 
 	std::unique_ptr<module> make_sniffer(std::string cache);
 	std::unique_ptr<module> make_pinger();
+
+	template<typename... Args>
+	class creator {
+		public:
+			virtual void ok(int id, int request) = 0;
+			virtual void err(int id, int request, int status, Args...) = 0;
+	};
 }

@@ -10,6 +10,7 @@
 
 #include <stdexcept>
 #include <iostream>
+#include <sstream>
 #include <fstream>
 #include <functional>
 #include <string>
@@ -19,6 +20,7 @@
 #include <memory>
 #include <thread>
 #include <mutex>
+#include <shared_mutex>
 
 #include <optional.hpp>
 #include <variant.hpp>

@@ -66,6 +66,15 @@ final public class Command {
 	}
 
 	final static public class Pinger {
+		final static public class Error {
+			public static final int ALREADY_STARTED = 2;
+			public static final int NOT_STARTED     = 3;
+
+			public static final int ALREADY_EXISTS   = 4;
+			public static final int NOT_FOUND        = 5;
+			public static final int INVALID_TARGET   = 6;
+		}
+
 		public static final int SUBSCRIBE   = 1;
 		public static final int UNSUBSCRIBE = 2;
 

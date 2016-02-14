@@ -12,13 +12,18 @@ namespace wd {
 			};
 
 		public:
-			pinger(int id, std::string target, int64_t interval);
+			pinger(creator<>* creator, int id, int request, std::string target, uint32_t interval);
 			~pinger();
 
+		public:
+			void start(int request);
+			void stop(int request);
+			void destroy(int request);
+
 		private:
-			int          _id;
+			int         _id;
 			std::string _target;
-			int64_t     _interval;
+			uint32_t    _interval;
 
 			std::shared_ptr<queue<command>> _queue;
 			std::thread                     _thread;
