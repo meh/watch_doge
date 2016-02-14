@@ -20,69 +20,48 @@ import meh.watchdoge.request.command;
 import meh.watchdoge.util.*;
 import meh.watchdoge.backend.util.*;
 import org.jetbrains.anko.*;
+import nl.komponents.kovenant.*;
 
 import android.os.RemoteException;
 
 class Wireless {
-	open class Event(bundle: Bundle) {
-		protected val _bundle = bundle;
+	class Conn(conn: Connection): Module.Connection(conn) {
+		private val _subscriber = Module.Connection.Subscriber<Event>();
 
-		companion object {
-			fun from(msg: Message): Event {
-				return when (msg.arg1) {
-					Command.Event.Wireless.STATUS ->
-						Status(msg.getData())
-
-					else ->
-						throw IllegalArgumentException("unknown event type")
-				}
-			}
-		}
-
-		fun bundle(): Bundle {
-			return _bundle;
-		}
-	}
-
-	class Connection {
-		private val _subscribers: HashSet<(Event) -> Unit> = HashSet();
-
-		inner class Subscriber(body: (Event) -> Unit): meh.watchdoge.backend.Connection.Subscriber {
-			private val _body = body;
-
+		inner class Subscription(body: (Event) -> Unit): Module.Connection.Subscription<Event>(body) {
 			override fun unsubscribe() {
-				synchronized(_subscribers) {
-					_subscribers.remove(_body)
+				unsubscribe(_subscriber);
+
+				if (_subscriber.empty()) {
+					request { wireless { unsubscribe() } }
 				}
 			}
 		}
 
-		fun subscribe(body: (Event) -> Unit): Subscriber {
-			synchronized(_subscribers) {
-				_subscribers.add(body);
+		fun subscribe(body: (Event) -> Unit): Promise<Module.Connection.ISubscription, Exception> {
+			return if (_subscriber.empty()) {
+				request { wireless { subscribe() } }
 			}
-
-			return Subscriber(body);
+			else {
+				Promise.of(1);
+			} then {
+				_subscriber.subscribe(body);
+				Subscription(body)
+			}
 		}
 
-		fun handle(msg: Message): Boolean {
+		override fun handle(msg: Message): Boolean {
 			if (msg.what != Command.Event.WIRELESS) {
 				return false;
 			}
 
-			val event = Event.from(msg);
-
-			synchronized(_subscribers) {
-				for (sub in _subscribers) {
-					sub(event)
-				}
-			}
+			_subscriber.emit(Wireless.event(msg));
 
 			return true;
 		}
 	}
 
-	class Module(backend: Backend): meh.watchdoge.backend.Module(backend) {
+	class Mod(backend: Backend): Module(backend) {
 		private val _subscribers: HashSet<Messenger> = HashSet();
 
 		init {
@@ -204,6 +183,18 @@ class Wireless {
 		}
 	}
 
-	class Status(bundle: Bundle): Event(bundle) {
+	companion object {
+		fun event(msg: Message): Event {
+			return when (msg.arg1) {
+				Command.Event.Wireless.STATUS ->
+					Status(msg.getData())
+
+				else ->
+					throw IllegalArgumentException("unknown event type")
+			}
+		}
 	}
+
+	open class Event(bundle: Bundle): Module.Event(bundle);
+	class Status(bundle: Bundle): Event(bundle);
 }

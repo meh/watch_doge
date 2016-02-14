@@ -127,9 +127,9 @@ public class Backend(): Service() {
 			.setSmallIcon(R.drawable.notification)
 			.build());
 
-		_sniffer  = Sniffer.Module(this) as Module;
-		_wireless = Wireless.Module(this) as Module;
-		_pinger   = Pinger.Module(this) as Module;
+		_sniffer  = Sniffer.Mod(this) as Module;
+		_wireless = Wireless.Mod(this) as Module;
+		_pinger   = Pinger.Mod(this) as Module;
 
 		if (_root) {
 			Looper().start();

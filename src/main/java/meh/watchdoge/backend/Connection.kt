@@ -33,9 +33,9 @@ class Connection(context: Context, ready: (Connection) -> Unit) {
 	private val _ready:    (Connection) -> Unit;
 	private val _requests: ArrayDeque<Deferred<Response, Response.Exception>>;
 
-	private val _sniffer:  Sniffer.Connection;
-	private val _wireless: Wireless.Connection;
-	private val _pinger:   Pinger.Connection;
+	private val _sniffer:  Sniffer.Conn;
+	private val _wireless: Wireless.Conn;
+	private val _pinger:   Pinger.Conn;
 
 	init {
 		_receiver   = Messenger(Handler());
@@ -44,9 +44,9 @@ class Connection(context: Context, ready: (Connection) -> Unit) {
 
 		_ready    = ready;
 		_requests = ArrayDeque();
-		_sniffer  = Sniffer.Connection();
-		_pinger   = Pinger.Connection();
-		_wireless = Wireless.Connection();
+		_sniffer  = Sniffer.Conn(this);
+		_pinger   = Pinger.Conn(this);
+		_wireless = Wireless.Conn(this);
 
 		context.bindService(context.intentFor<Backend>(),
 			_connection, Context.BIND_AUTO_CREATE);
@@ -63,31 +63,21 @@ class Connection(context: Context, ready: (Connection) -> Unit) {
 		return req.promise;
 	}
 
-	fun subscribe(body: Subscribe.() -> Promise<Subscriber, Exception>): Promise<Subscriber, Exception> {
+	fun subscribe(body: Subscribe.() -> Promise<Module.Connection.ISubscription, Exception>): Promise<Module.Connection.ISubscription, Exception> {
 		return Subscribe().body();
 	}
 
-	interface Subscriber {
-		fun unsubscribe();
-	}
-
 	inner class Subscribe {
-		fun sniffer(id: Int, body: (Sniffer.Event) -> Unit): Promise<Subscriber, Exception> {
-			return request { sniffer(id) { subscribe() } } then {
-				_sniffer.subscribe(id, body)
-			};
+		fun sniffer(id: Int, body: (Module.IEvent) -> Unit): Promise<Module.Connection.ISubscription, Exception> {
+			return _sniffer.subscribe(id, body);
 		}
 
-		fun wireless(body: (Wireless.Event) -> Unit): Promise<Subscriber, Exception> {
-			return request { wireless { subscribe() } } then {
-				_wireless.subscribe(body)
-			};
+		fun wireless(body: (Module.IEvent) -> Unit): Promise<Module.Connection.ISubscription, Exception> {
+			return _wireless.subscribe(body);
 		}
 
-		fun pinger(id: Int, body: (Pinger.Event) -> Unit): Promise<Subscriber, Exception> {
-			return request { pinger(id) { subscribe() } } then {
-				_pinger.subscribe(id, body)
-			}
+		fun pinger(id: Int, body: (Module.IEvent) -> Unit): Promise<Module.Connection.ISubscription, Exception> {
+			return _pinger.subscribe(id, body);
 		}
 	}
 
