@@ -1,7 +1,5 @@
 package meh.watchdoge.ui;
 
-import android.util.Log;
-
 import meh.watchdoge.R;
 import meh.watchdoge.ui.util.*;
 import meh.watchdoge.util.*;
@@ -13,6 +11,7 @@ import nl.komponents.kovenant.functional.*;
 import android.os.Bundle;
 import meh.watchdoge.backend.Connection;
 import meh.watchdoge.backend.Pinger;
+import meh.watchdoge.backend.Command;
 import meh.watchdoge.Response;
 
 import android.content.Context;
@@ -88,7 +87,7 @@ class Track(): ProgressFragment(R.layout.track) {
 				} successUi {
 					ok()
 				} failUi {
-					error("Something happened :(")
+					error(it)
 				}
 			}
 
@@ -96,7 +95,7 @@ class Track(): ProgressFragment(R.layout.track) {
 				conn.request { pinger(id) { stop() } } successUi {
 					stop()
 				} failUi {
-					error("Something happened :(")
+					error(it)
 				}
 			}
 
@@ -113,7 +112,7 @@ class Track(): ProgressFragment(R.layout.track) {
 				} successUi {
 					clear()
 				} failUi {
-					error("Something happened :(")
+					error(it)
 				}
 			}
 		}
@@ -151,7 +150,7 @@ class Track(): ProgressFragment(R.layout.track) {
 		}
 
 		fun update(event: Pinger.Event) {
-			Log.d("UI", "PINGER/UPDATE: ${event}");
+			android.util.Log.d("UI", "PINGER/UPDATE: ${event}");
 		}
 
 		fun start() {
@@ -170,6 +169,24 @@ class Track(): ProgressFragment(R.layout.track) {
 
 			// container
 			view.find<View>(R.id.active).setVisibility(View.VISIBLE);
+		}
+
+		fun error(err: Exception) {
+			var text = "Something happened :(";
+
+			when (err) {
+				is Response.Exception -> when {
+					err.family() == Command.PINGER &&
+					err.status() == Command.Pinger.Error.UNKNOWN_HOST ->
+						text = "Unknown host."
+
+					err.family() == Command.PINGER &&
+					err.status() == Command.Pinger.Error.SOCKET ->
+						text = "Socket error."
+				}
+			}
+
+			error(text);
 		}
 
 		fun error(text: String) {
