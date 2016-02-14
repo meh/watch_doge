@@ -11,25 +11,25 @@ namespace wd {
 		struct hostent* host = gethostbyname(target.c_str());
 
 		if (host == NULL) {
-			creation->err(id, request, command::pinger::error::INVALID_TARGET);
+			creation->err(id, request, command::pinger::error::UNKNOWN_HOST);
 			return;
 		}
 
 		int sock = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
 		if (sock < 0) {
-			creation->err(id, request, command::pinger::error::SOCKET_ERROR);
+			creation->err(id, request, command::pinger::error::SOCKET);
 			return;
 		}
 
 		{
     	int flags = fcntl(sock, F_GETFL, 0);
 			if (flags < 0) {
-				creation->err(id, request, command::pinger::error::SOCKET_ERROR);
+				creation->err(id, request, command::pinger::error::SOCKET);
 				return;
 			}
 
     	if (fcntl(sock, F_SETFL, flags | O_NONBLOCK) < 0) {
-				creation->err(id, request, command::pinger::error::SOCKET_ERROR);
+				creation->err(id, request, command::pinger::error::SOCKET);
 				return;
 			}
 		}

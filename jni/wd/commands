@@ -55,8 +55,8 @@ namespace wd {
 
 				const int ALREADY_EXISTS = 4;
 				const int NOT_FOUND      = 5;
-				const int INVALID_TARGET = 6;
-				const int SOCKET_ERROR   = 7;
+				const int UNKNOWN_HOST   = 6;
+				const int SOCKET         = 7;
 			}
 
 			const int CREATE  = 100;
