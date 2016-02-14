@@ -10,6 +10,7 @@ import nl.komponents.kovenant.functional.*;
 
 import android.os.Bundle;
 import meh.watchdoge.backend.Connection;
+import meh.watchdoge.backend.Module.Connection.ISubscription;
 import meh.watchdoge.backend.Pinger;
 import meh.watchdoge.backend.Command;
 import meh.watchdoge.Response;
@@ -58,8 +59,8 @@ class Track(): ProgressFragment(R.layout.track) {
 	}
 
 	class Ping(context: Context): Component(context, R.layout.track_ping) {
-		private var id                                 = 0;
-		private var subscriber: Connection.Subscriber? = null;
+		private var id                         = 0;
+		private var subscriber: ISubscription? = null;
 
 		fun connect(conn: Connection) {
 			onStart {
@@ -72,7 +73,7 @@ class Track(): ProgressFragment(R.layout.track) {
 						conn.subscribe {
 							pinger(id) {
 								promiseOnUi {
-									update(it)
+									update(it as Pinger.Event)
 								}
 							}
 						}

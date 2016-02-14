@@ -2,6 +2,7 @@
 	<color name="primary">#000000</color>
 	<color name="accent">#b21818</color>
 	<color name="content">#111111</color>
+	<color name="contrast">#ffffff</color>
 
 	<color name="text">#ffffff</color>
 	<color name="text_hint">#999999</color>
@@ -11,7 +12,7 @@
 	<color name="positive">#009900</color>
 	<color name="negative">#990000</color>
 	<color name="success">#006600</color>
-	<color name="failure">#660000</color>
+	<color name="failure">#550000</color>
 
 	<color name="card">#222222</color>
 
@@ -74,6 +75,7 @@
 	</style>
 
 	<style name="Theme.WatchDoge.Text.Error" parent="@android:style/TextAppearance.Widget.TextView">
-		<item name="android:textColor">@color/failure</item>
+		<item name="android:textColor">@color/contrast</item>
+		<item name="android:background">@color/failure</item>
 	</style>
 </resources>
