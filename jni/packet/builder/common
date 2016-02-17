@@ -1,0 +1,22 @@
+#pragma once
+
+#include <wd/common>
+#include <packet/builder/buffer>
+
+namespace wd {
+	namespace packet {
+		namespace builder {
+			class base {
+				public:
+					base(std::shared_ptr<builder::buffer> buf);
+					base();
+
+				public:
+					std::shared_ptr<builder::buffer> buffer();
+
+				protected:
+					std::shared_ptr<builder::buffer> _buffer;
+			};
+		}
+	}
+}
