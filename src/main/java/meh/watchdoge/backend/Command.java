@@ -31,8 +31,9 @@ final public class Command {
 		}
 
 		final static public class Pinger {
-			public static final int SENT  = 1;
-			public static final int STATS = 2;
+			public static final int STATS  = 1;
+			public static final int PACKET = 2;
+			public static final int ERROR  = 3;
 		}
 	}
 

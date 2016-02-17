@@ -24,8 +24,9 @@ namespace wd {
 			}
 
 			namespace pinger {
-				const int SENT  = 1;
-				const int STATS = 2;
+				const int STATS  = 1;
+				const int PACKET = 2;
+				const int ERROR  = 3;
 			}
 		}
 
