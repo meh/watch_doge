@@ -13,6 +13,8 @@ import meh.watchdoge.Request;
 import meh.watchdoge.request.command;
 import meh.watchdoge.util.*;
 
+import android.os.RemoteException;
+
 class Pinger {
 	class Conn(conn: Connection): Module.Connection(conn) {
 		private val _subscriber = Module.Connection.SubscriberWithId<Event>();
@@ -80,38 +82,6 @@ class Pinger {
 			return true;
 		}
 
-		override fun receive() {
-			val id    = _unpacker.unpackInt();
-			val event = _unpacker.unpackInt();
-
-			when (event) {
-				Command.Event.Pinger.SENT ->
-					Unit
-
-				Command.Event.Pinger.STATS ->
-					Unit
-			}
-		}
-
-		override fun response(messenger: Messenger, request: Request, status: Int) {
-			when (request.command()) {
-				Command.Pinger.CREATE -> {
-					val id = _unpacker.unpackInt();
-
-					synchronized(_map) {
-						_map.put(id, HashSet());
-					}
-
-					messenger.response(request, status) {
-						it.putInt("id", id);
-					}
-				}
-
-				else ->
-					messenger.response(request, status)
-			}
-		}
-
 		private fun create(msg: Message) {
 			var target   = msg.getData().getString("target");
 			var interval = msg.getData().getInt("interval");
@@ -173,6 +143,115 @@ class Pinger {
 				}
 			}
 		}
+
+		override fun response(messenger: Messenger, request: Request, status: Int) {
+			when (request.command()) {
+				Command.Pinger.CREATE -> {
+					val id = _unpacker.unpackInt();
+
+					synchronized(_map) {
+						_map.put(id, HashSet());
+					}
+
+					messenger.response(request, status) {
+						it.putInt("id", id);
+					}
+				}
+
+				else ->
+					messenger.response(request, status)
+			}
+		}
+
+		override fun receive() {
+			val id    = _unpacker.unpackInt();
+			val event = _unpacker.unpackInt();
+
+			when (event) {
+				Command.Event.Pinger.STATS ->
+					stats(id)
+
+				Command.Event.Pinger.PACKET ->
+					packet(id)
+
+				Command.Event.Pinger.ERROR ->
+					error(id)
+			}
+		}
+
+		private fun stats(id: Int) {
+			val message = Message.obtain().tap {
+				it.what = Command.Event.PINGER;
+				it.arg1 = Command.Event.Pinger.STATS;
+				it.arg2 = id;
+			}
+
+			message.getData().tap {
+				it.putParcelable("packet", Bundle().tap {
+					it.putLong("sent", _unpacker.unpackLong());
+					it.putLong("received", _unpacker.unpackLong());
+					it.putFloat("loss", _unpacker.unpackFloat());
+				});
+
+				it.putParcelable("trip", Bundle().tap {
+					it.putLong("minimum", _unpacker.unpackLong());
+					it.putLong("maximum", _unpacker.unpackLong());
+					it.putLong("average", _unpacker.unpackLong());
+				});
+			}
+
+			send(id, message);
+		}
+
+		private fun packet(id: Int) {
+			val message = Message.obtain().tap {
+				it.what = Command.Event.PINGER;
+				it.arg1 = Command.Event.Pinger.PACKET;
+				it.arg2 = id;
+			}
+
+			message.getData().tap {
+				it.putString("source", _unpacker.unpackString());
+				it.putInt("sequence", _unpacker.unpackInt());
+				it.putInt("ttl", _unpacker.unpackInt());
+				it.putLong("trip", _unpacker.unpackLong());
+			}
+
+			send(id, message);
+		}
+
+		private fun error(id: Int) {
+			val message = Message.obtain().tap {
+				it.what = Command.Event.PINGER;
+				it.arg1 = Command.Event.Pinger.ERROR;
+				it.arg2 = id;
+			}
+
+			message.getData().tap {
+				it.putString("source", _unpacker.unpackString());
+				it.putInt("sequence", _unpacker.unpackInt());
+				it.putInt("ttl", _unpacker.unpackInt());
+				it.putString("reason", _unpacker.unpackString());
+			}
+
+			send(id, message);
+		}
+
+		private fun send(id: Int, message: Message) {
+			synchronized(_map) {
+				if (_map.containsKey(id)) {
+					_map.get(id)?.retainAll {
+						try {
+							it.send(message);
+							true
+						}
+						catch (e: RemoteException) {
+							false
+						}
+					}
+				}
+			}
+		}
 	}
 
 	companion object {
@@ -181,6 +260,12 @@ class Pinger {
 				Command.Event.Pinger.STATS ->
 					Stats(msg.arg2, msg.getData())
 
+				Command.Event.Pinger.PACKET ->
+					Packet(msg.arg2, msg.getData())
+
+				Command.Event.Pinger.ERROR ->
+					Error(msg.arg2, msg.getData())
+
 				else ->
 					throw IllegalArgumentException("unknown event type")
 			}
@@ -188,6 +273,49 @@ class Pinger {
 	}
 
 	open class Event(id: Int, bundle: Bundle): Module.EventWithId(id, bundle);
-	class Sent(id: Int, bundle: Bundle): Event(id, bundle);
-	class Stats(id: Int, bundle: Bundle): Event(id, bundle);
+
+	class Stats(id: Int, bundle: Bundle): Event(id, bundle) {
+		data class Packet(val sent: Long, val received: Long, val loss: Float);
+		data class Trip(val minimum: Long, val maximum: Long, val average: Long);
+
+		fun packet(): Packet {
+			return bundle().getParcelable<Bundle>("packet").let {
+				Packet(it.getLong("sent"), it.getLong("received"), it.getFloat("loss"))
+			};
+		}
+
+		fun trip(): Trip {
+			return bundle().getParcelable<Bundle>("trip").let {
+				Trip(it.getLong("minimum"), it.getLong("maximum"), it.getLong("average"))
+			};
+		}
+	}
+
+	open class Entry(id: Int, bundle: Bundle): Event(id, bundle) {
+		fun source(): String {
+			return bundle().getString("source")
+		}
+
+		fun sequence(): Int {
+			return bundle().getInt("sequence")
+		}
+
+		fun ttl(): Int {
+			return bundle().getInt("ttl")
+		}
+	}
+
+	class Packet(id: Int, bundle: Bundle): Entry(id, bundle) {
+		fun trip(): Long {
+			return bundle().getLong("trip")
+		}
+	}
+
+	class Error(id: Int, bundle: Bundle): Entry(id, bundle) {
+		fun reason(): String {
+			return Regex("""-(.)""").replace(bundle().getString("reason").capitalize()) {
+				" ${it.groups.get(1)!!.value.toUpperCase()}"
+			}
+		}
+	}
 }
