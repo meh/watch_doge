@@ -25,27 +25,19 @@ public class Application(): android.app.Application() {
 
 		Iconify.with(MaterialModule()).with(MaterialCommunityModule());
 
-		try {
-			val installed = getFileStreamPath("backend");
-			val updated   = getPackageManager()
-				.getPackageInfo(getPackageName(), 0)
-				.lastUpdateTime;
+		val installed = getFileStreamPath("backend");
+		val updated   = getPackageManager()
+			.getPackageInfo(getPackageName(), 0)
+			.lastUpdateTime;
 
-			if (!installed.exists() || installed.lastModified() < updated) {
-				getResources().openRawResource(R.raw.backend).use { input ->
-					openFileOutput("backend", Context.MODE_PRIVATE).use { output ->
-						input.copyTo(output)
-					}
+		if (!installed.exists() || installed.lastModified() < updated) {
+			getResources().openRawResource(R.raw.backend).use { input ->
+				openFileOutput("backend", Context.MODE_PRIVATE).use { output ->
+					input.copyTo(output)
 				}
-
-				getFileStreamPath("backend").setExecutable(true);
 			}
-		}
-		catch (e: FileNotFoundException) { /* the executable is still running */ }
-		catch (e: NameNotFoundException) { /* won't happen */ }
-		catch (e: IOException) {
-			// TODO: report to user he dun goofed
-			android.util.Log.e("A", "backend installation failed");
+
+			getFileStreamPath("backend").setExecutable(true);
 		}
 	}
 }
