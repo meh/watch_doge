@@ -161,7 +161,7 @@ namespace wd {
 		uint16_t
 		icmp::checksum() const
 		{
-			return ntohl(packet->checksum);
+			return ntohs(packet->checksum);
 		}
 
 		template<>
