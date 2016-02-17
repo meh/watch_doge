@@ -5,7 +5,7 @@ include $(CLEAR_VARS)
 LOCAL_MODULE := backend
 LOCAL_LDLIBS := -llog
 
-LOCAL_SRC_FILES := main.cpp send.cpp receiver.cpp device.cpp \
+LOCAL_SRC_FILES := main.cpp send.cpp receiver.cpp device.cpp socket.cpp \
 	sniffer/sniffer.cpp sniffer/module.cpp \
 	pinger/module.cpp pinger/pinger.cpp \
 	packet/packet.cpp packet/unknown.cpp packet/ether.cpp packet/arp.cpp packet/ip.cpp packet/icmp.cpp packet/tcp.cpp \

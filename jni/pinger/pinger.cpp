@@ -1,8 +1,4 @@
 #include "pinger"
-
-#include <netdb.h>
-#include <fcntl.h>
-
 #include <packet/builder/icmp>
 
 namespace wd {
@@ -141,69 +137,25 @@ namespace wd {
 	}
 
 	static
-	int
-	_blocking(int sock)
-	{
-		int result;
-
-    result = fcntl(sock, F_GETFL, 0);
-		if (result < 0) {
-			return result;
-		}
-
-		result = fcntl(sock, F_SETFL, result & ~O_NONBLOCK);
-		if (result < 0) {
-			return result;
-		}
-
-		return 0;
-	}
-
-	int
-	_nonblocking(int sock)
-	{
-		int result;
-
-    result = fcntl(sock, F_GETFL, 0);
-		if (result < 0) {
-			return result;
-		}
-
-		result = fcntl(sock, F_SETFL, result | O_NONBLOCK);
-		if (result < 0) {
-			return result;
-		}
-
-		return 0;
-	}
-
-	static
 	void
 	_loop(wd::creator<>* creation, int id, int request, std::string target, uint32_t interval, std::shared_ptr<queue<pinger::command>> queue)
 	{
-		struct hostent* host = gethostbyname(target.c_str());
+		struct hostent* host = ::gethostbyname(target.c_str());
 
 		if (host == NULL) {
 			creation->err(id, request, command::pinger::error::UNKNOWN_HOST);
 			return;
 		}
 
-		int sock = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
+		int sock = ::socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
 		if (sock < 0) {
 			creation->err(id, request, command::pinger::error::SOCKET);
 			return;
 		}
 
-		{
-			struct timeval timeout = {
-				.tv_sec  = 0,
-				.tv_usec = GRANULARITY * 1'000,
-			};
-
-			if (setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0) {
-				creation->err(id, request, command::pinger::error::SOCKET);
-				return;
-			}
+		if (socket::timeout(sock, std::chrono::milliseconds(GRANULARITY)) < 0) {
+			creation->err(id, request, command::pinger::error::SOCKET);
+			return;
 		}
 
 		creation->ok(id, request);
@@ -300,7 +252,7 @@ namespace wd {
 					if (length >= 0) {
 						_analyze(id, &stats, length, buffer);
 
-						_nonblocking(sock);
+						wd::socket::nonblocking(sock);
 						while (true) {
 							length = recvfrom(sock, buffer, sizeof(buffer),
 								0, reinterpret_cast<struct sockaddr*>(&from), &from_s);
@@ -311,7 +263,7 @@ namespace wd {
 
 							_analyze(id, &stats, length, buffer);
 						}
-						_blocking(sock);
+						wd::socket::blocking(sock);
 					}
 
 					slept += GRANULARITY;

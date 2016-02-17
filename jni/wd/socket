@@ -1,0 +1,9 @@
+#pragma once
+
+namespace wd {
+	namespace socket {
+		int blocking(int sock);
+		int nonblocking(int sock);
+		int timeout(int sock, std::chrono::milliseconds time);
+	}
+}
