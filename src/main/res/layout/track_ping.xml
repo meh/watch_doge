@@ -88,7 +88,10 @@
 
 					<TableRow>
 						<TextView android:text="IP"
-							android:padding="4dp"
+							android:paddingTop="4dp"
+							android:paddingLeft="8dp"
+							android:paddingRight="8dp"
+							android:paddingBottom="4dp"
 							android:gravity="center"
 							android:background="@color/neutral" />
 
@@ -98,7 +101,10 @@
 							android:background="@color/card" />
 
 						<TextView android:text="TTL"
-							android:padding="4dp"
+							android:paddingTop="4dp"
+							android:paddingLeft="8dp"
+							android:paddingRight="8dp"
+							android:paddingBottom="4dp"
 							android:gravity="center"
 							android:background="@color/neutral" />
 
@@ -108,7 +114,10 @@
 							android:background="@color/card" />
 
 						<TextView android:text="SEQ"
-							android:padding="4dp"
+							android:paddingTop="4dp"
+							android:paddingLeft="8dp"
+							android:paddingRight="8dp"
+							android:paddingBottom="4dp"
 							android:gravity="center"
 							android:background="@color/neutral" />
 
@@ -118,7 +127,10 @@
 							android:background="@color/card" />
 
 						<TextView android:text="STATUS"
-							android:padding="4dp"
+							android:paddingTop="4dp"
+							android:paddingLeft="8dp"
+							android:paddingRight="8dp"
+							android:paddingBottom="4dp"
 							android:gravity="center"
 							android:background="@color/neutral" />
 					</TableRow>
