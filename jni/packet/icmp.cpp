@@ -236,6 +236,159 @@ namespace wd {
 				reinterpret_cast<const char*>(packet) + sizeof(icmp::raw));
 		}
 
+		std::optional<std::string>
+		to_string(enum icmp::type type)
+		{
+			switch (type) {
+				case icmp::ECHO_REPLY:
+					return std::string("echo-reply");
+
+				case icmp::DESTINATION_UNREACHABLE:
+					return std::string("destination-unreachable");
+
+				case icmp::SOURCE_QUENCH:
+					return std::string("source-quench");
+
+				case icmp::REDIRECT_MESSAGE:
+					return std::string("redirect-message");
+
+				case icmp::ECHO_REQUEST:
+					return std::string("echo-request");
+
+				case icmp::ROUTER_ADVERTISEMENT:
+					return std::string("router-advertisement");
+
+				case icmp::ROUTER_SOLICITATION:
+					return std::string("router-solicitation");
+
+				case icmp::TIME_EXCEEDED:
+					return std::string("time-exceeded");
+
+				case icmp::PARAMETER_PROBLEM:
+					return std::string("parameter-problem");
+
+				case icmp::TIMESTAMP_REQUEST:
+					return std::string("timestamp-request");
+
+				case icmp::TIMESTAMP_REPLY:
+					return std::string("timestamp-reply");
+
+				case icmp::INFORMATION_REQUEST:
+					return std::string("information-request");
+
+				case icmp::INFORMATION_REPLY:
+					return std::string("information-reply");
+
+				case icmp::ADDRESS_MASK_REQUEST:
+					return std::string("address-mask-request");
+
+				case icmp::ADDRESS_MASK_REPLY:
+					return std::string("address-mask-reply");
+
+				case icmp::TRACEROUTE:
+					return std::string("traceroute");
+
+				default:
+					return std::nullopt;
+			}
+		}
+
+		std::optional<std::string>
+		to_string(enum icmp::code::destination_unreachable code)
+		{
+			switch (code) {
+				case icmp::code::DESTINATION_NETWORK_UNREACHABLE:
+					return std::string("destination-network-unreachable");
+
+				case icmp::code::DESTINATION_HOST_UNREACHABLE:
+					return std::string("destination-host-unreachable");
+
+				case icmp::code::DESTINATION_PROTOCOL_UNREACHABLE:
+					return std::string("destination-protocol-unreachable");
+
+				case icmp::code::DESTINATION_PORT_UNREACHABLE:
+					return std::string("destination-port-unreachable");
+
+				case icmp::code::FRAGMENTATION_REQUIRED:
+					return std::string("fragmentation-required");
+
+				case icmp::code::SOURCE_ROUTE_FAILED:
+					return std::string("source-route-failed");
+
+				case icmp::code::DESTINATION_NETWORK_UNKNOWN:
+					return std::string("destination-network-unknown");
+
+				case icmp::code::DESTINATION_HOST_UNKNOWN:
+					return std::string("destination-host-unknown");
+
+				case icmp::code::SOURCE_HOST_ISOLATED:
+					return std::string("source-host-isolated");
+
+				case icmp::code::NETWORK_ADMINISTRATIVELY_PROHIBITED:
+					return std::string("network-administratively-prohibited");
+
+				case icmp::code::HOST_ADMINISTRATIVELY_PROHIBITED:
+					return std::string("host-administratively-prohibited");
+
+				case icmp::code::NETWORK_UNREACHABLE_FOR_TOS:
+					return std::string("network-unreachable-for-tos");
+
+				case icmp::code::HOST_UNREACHABLE_FOR_TOS:
+					return std::string("host-unreachable-for-tos");
+
+				case icmp::code::COMMUNICATION_ADMINISTRATIVELY_PROHIBITED:
+					return std::string("communication-administratively-prohibited");
+
+				case icmp::code::HOST_PRECEDENCE_VIOLATION:
+					return std::string("host-precedence-violation");
+
+				case icmp::code::PRECEDENT_CUTOFF_IN_EFFECT:
+					return std::string("precedent-cutoff-in-effect");
+
+				default:
+					return std::nullopt;
+			}
+		}
+
+		std::optional<std::string>
+		to_string(enum icmp::code::redirect_message code)
+		{
+			switch (code) {
+				case icmp::code::REDIRECT_DATAGRAM_FOR_NETWORK:
+					return std::string("redirect-datagram-for-network");
+
+				case icmp::code::REDIRECT_DATAGRAM_FOR_HOST:
+					return std::string("redirect-datagram-for-host");
+
+				case icmp::code::REDIRECT_DATAGRAM_FOR_TOS_AND_NETWORK:
+					return std::string("redirect-datagram-for-tos-and-network");
+
+				case icmp::code::REDIRECT_DATAGRAM_FOR_TOS_AND_HOST:
+					return std::string("redirect-datagram-for-tos-and-host");
+
+				default:
+					return std::nullopt;
+			}
+		}
+
+		std::optional<std::string>
+		to_string(enum icmp::code::parameter_problem code)
+		{
+			switch (code) {
+				case icmp::code::POINTER_INDICATES_ERROR:
+					return std::string("pointer-indicates-error");
+
+				case icmp::code::MISSING_REQUIRED_OPTION:
+					return std::string("missing-required-option");
+
+				case icmp::code::BAD_LENGTH:
+					return std::string("bad-length");
+
+				default:
+					return std::nullopt;
+			}
+		}
+
 		size_t
 		icmp::pack(msgpack::packer<std::ostream>& packer, const packet::header* header, const ether::raw* ether, const ip::raw* ip)
 		{
@@ -246,191 +399,43 @@ namespace wd {
 			packer.pack_map(4);
 
 			packer.pack("type");
-			switch (type()) {
-				case icmp::ECHO_REPLY:
-					packer.pack("echo-reply");
-					break;
-
-				case icmp::DESTINATION_UNREACHABLE:
-					packer.pack("destination-unreachable");
-					break;
-
-				case icmp::SOURCE_QUENCH:
-					packer.pack("source-quench");
-					break;
-
-				case icmp::REDIRECT_MESSAGE:
-					packer.pack("redirect-message");
-					break;
-
-				case icmp::ECHO_REQUEST:
-					packer.pack("echo-request");
-					break;
-
-				case icmp::ROUTER_ADVERTISEMENT:
-					packer.pack("router-advertisement");
-					break;
-
-				case icmp::ROUTER_SOLICITATION:
-					packer.pack("router-solicitation");
-					break;
-
-				case icmp::TIME_EXCEEDED:
-					packer.pack("time-exceeded");
-					break;
-
-				case icmp::PARAMETER_PROBLEM:
-					packer.pack("parameter-problem");
-					break;
-
-				case icmp::TIMESTAMP_REQUEST:
-					packer.pack("timestamp-request");
-					break;
-
-				case icmp::TIMESTAMP_REPLY:
-					packer.pack("timestamp-reply");
-					break;
-
-				case icmp::INFORMATION_REQUEST:
-					packer.pack("information-request");
-					break;
-
-				case icmp::INFORMATION_REPLY:
-					packer.pack("information-reply");
-					break;
-
-				case icmp::ADDRESS_MASK_REQUEST:
-					packer.pack("address-mask-request");
-					break;
-
-				case icmp::ADDRESS_MASK_REPLY:
-					packer.pack("address-mask-reply");
-					break;
-
-				case icmp::TRACEROUTE:
-					packer.pack("traceroute");
-					break;
-
-				default:
-					packer.pack_uint8(packet->type);
+			if (auto string = to_string(type())) {
+				packer.pack(*string);
+			}
+			else {
+				packer.pack_uint8(packet->type);
 			}
 
 			packer.pack("code");
 			switch (type()) {
 				case icmp::DESTINATION_UNREACHABLE: {
-					switch (code<icmp::code::destination_unreachable>()) {
-						case icmp::code::DESTINATION_NETWORK_UNREACHABLE:
-							packer.pack("destination-network-unreachable");
-							break;
-
-						case icmp::code::DESTINATION_HOST_UNREACHABLE:
-							packer.pack("destination-host-unreachable");
-							break;
-
-						case icmp::code::DESTINATION_PROTOCOL_UNREACHABLE:
-							packer.pack("destination-protocol-unreachable");
-							break;
-
-						case icmp::code::DESTINATION_PORT_UNREACHABLE:
-							packer.pack("destination-port-unreachable");
-							break;
-
-						case icmp::code::FRAGMENTATION_REQUIRED:
-							packer.pack("fragmentation-required");
-							break;
-
-						case icmp::code::SOURCE_ROUTE_FAILED:
-							packer.pack("source-route-failed");
-							break;
-
-						case icmp::code::DESTINATION_NETWORK_UNKNOWN:
-							packer.pack("destination-network-unknown");
-							break;
-
-						case icmp::code::DESTINATION_HOST_UNKNOWN:
-							packer.pack("destination-host-unknown");
-							break;
-
-						case icmp::code::SOURCE_HOST_ISOLATED:
-							packer.pack("source-host-isolated");
-							break;
-
-						case icmp::code::NETWORK_ADMINISTRATIVELY_PROHIBITED:
-							packer.pack("network-administratively-prohibited");
-							break;
-
-						case icmp::code::HOST_ADMINISTRATIVELY_PROHIBITED:
-							packer.pack("host-administratively-prohibited");
-							break;
-
-						case icmp::code::NETWORK_UNREACHABLE_FOR_TOS:
-							packer.pack("network-unreachable-for-tos");
-							break;
-
-						case icmp::code::HOST_UNREACHABLE_FOR_TOS:
-							packer.pack("host-unreachable-for-tos");
-							break;
-
-						case icmp::code::COMMUNICATION_ADMINISTRATIVELY_PROHIBITED:
-							packer.pack("communication-administratively-prohibited");
-							break;
-
-						case icmp::code::HOST_PRECEDENCE_VIOLATION:
-							packer.pack("host-precedence-violation");
-							break;
-
-						case icmp::code::PRECEDENT_CUTOFF_IN_EFFECT:
-							packer.pack("precedent-cutoff-in-effect");
-							break;
-
-						default:
-							packer.pack_uint8(packet->code);
+					if (auto string = to_string(code<icmp::code::destination_unreachable>())) {
+						packer.pack(*string);
+					}
+					else {
+						packer.pack_uint8(packet->code);
 					}
 
 					break;
 				}
 
 				case icmp::REDIRECT_MESSAGE: {
-					switch (code<icmp::code::redirect_message>()) {
-						case icmp::code::REDIRECT_DATAGRAM_FOR_NETWORK:
-							packer.pack("redirect-datagram-for-network");
-							break;
-
-						case icmp::code::REDIRECT_DATAGRAM_FOR_HOST:
-							packer.pack("redirect-datagram-for-host");
-							break;
-
-						case icmp::code::REDIRECT_DATAGRAM_FOR_TOS_AND_NETWORK:
-							packer.pack("redirect-datagram-for-tos-and-network");
-							break;
-
-						case icmp::code::REDIRECT_DATAGRAM_FOR_TOS_AND_HOST:
-							packer.pack("redirect-datagram-for-tos-and-host");
-							break;
-
-						default:
-							packer.pack_uint8(packet->code);
+					if (auto string = to_string(code<icmp::code::redirect_message>())) {
+						packer.pack(*string);
+					}
+					else {
+						packer.pack_uint8(packet->code);
 					}
 
 					break;
 				}
 
 				case icmp::PARAMETER_PROBLEM: {
-					switch (code<icmp::code::parameter_problem>()) {
-						case icmp::code::POINTER_INDICATES_ERROR:
-							packer.pack("pointer-indicates-error");
-							break;
-
-						case icmp::code::MISSING_REQUIRED_OPTION:
-							packer.pack("missing-required-option");
-							break;
-
-						case icmp::code::BAD_LENGTH:
-							packer.pack("bad-length");
-							break;
-
-						default:
-							packer.pack_uint8(packet->code);
+					if (auto string = to_string(code<icmp::code::parameter_problem>())) {
+						packer.pack(*string);
+					}
+					else {
+						packer.pack_uint8(packet->code);
 					}
 
 					break;

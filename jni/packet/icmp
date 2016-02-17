@@ -1,6 +1,7 @@
 #pragma once
 
 #include <packet/common>
+#include <packet/ip>
 
 namespace wd {
 	namespace packet {
@@ -214,5 +215,10 @@ namespace wd {
 				template<typename T>
 				T details() const;
 		};
+
+		std::optional<std::string> to_string(enum icmp::type type);
+		std::optional<std::string> to_string(enum icmp::code::destination_unreachable code);
+		std::optional<std::string> to_string(enum icmp::code::redirect_message code);
+		std::optional<std::string> to_string(enum icmp::code::parameter_problem code);
 	}
 }
