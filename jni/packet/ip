@@ -1,6 +1,7 @@
 #pragma once
 
 #include <packet/common>
+#include <packet/ether>
 
 namespace wd {
 	namespace packet {
@@ -31,6 +32,7 @@ namespace wd {
 
 			public:
 				static std::string address(const in_addr* addr);
+				static uint16_t    checksum(const void* data, size_t length);
 
 			private:
 				const raw* packet;

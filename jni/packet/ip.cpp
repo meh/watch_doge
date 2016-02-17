@@ -22,6 +22,58 @@ namespace wd {
 			return ss.str();
 		}
 
+		uint16_t
+		ip::checksum(const void* dat, size_t length)
+		{
+			const char*  data   = reinterpret_cast<const char*>(dat);
+			uint64_t     acc    = 0xffff;
+			unsigned int offset = reinterpret_cast<uintptr_t>(data) & 3;
+
+			if (offset) {
+				size_t count = 4 - offset;
+
+				if (count > length) {
+					count = length;
+				}
+
+				uint32_t word = 0;
+				memcpy(offset + reinterpret_cast<char*>(&word), data, count);
+
+				acc    += ntohl(word);
+				data   += count;
+				length -= count;
+			}
+
+			const char* end = data + (length & ~3);
+			while (data != end) {
+				uint32_t word;
+				memcpy(&word, data, 4);
+
+				acc  += ntohl(word);
+				data += 4;
+			}
+
+			length &= 3;
+
+			if (length) {
+				uint32_t word = 0;
+				memcpy(&word, data, length);
+
+				acc += ntohl(word);
+			}
+
+			acc = (acc & 0xffffffff) + (acc >> 32);
+			while (acc >> 16) {
+				acc = (acc & 0xffff) + (acc >> 16);
+			}
+
+			if (offset & 1) {
+				acc = ((acc & 0xff00) >> 8) | ((acc & 0x00ff) << 8);
+			}
+
+			return htons(~acc);
+		}
+
 		uint8_t
 		ip::version() const
 		{
