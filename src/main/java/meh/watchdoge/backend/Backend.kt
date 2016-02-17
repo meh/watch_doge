@@ -200,51 +200,45 @@ public class Backend(): Service() {
 
 	inner class Looper(): Thread() {
 		override fun run() {
-			try {
-				while (true) {
-					val family = _unpacker.unpackInt();
+			while (true) {
+				val family = _unpacker.unpackInt();
 
-					when (family) {
-						Command.CONTROL -> {
-							val id     = _unpacker.unpackInt();
-							val status = _unpacker.unpackInt();
+				when (family) {
+					Command.CONTROL -> {
+						val id     = _unpacker.unpackInt();
+						val status = _unpacker.unpackInt();
 
-							val (messenger, request) = synchronized(_requests) {
-								_requests.remove(id)!!
-							}
-
-							when (request.family()) {
-								Command.SNIFFER ->
-									_sniffer.response(messenger, request, status)
-
-								Command.WIRELESS ->
-									_wireless.response(messenger, request, status)
-
-								Command.PINGER ->
-									_pinger.response(messenger, request, status)
-
-								else ->
-									messenger.response(request, status)
-							}
+						val (messenger, request) = synchronized(_requests) {
+							_requests.remove(id)!!
 						}
 
-						Command.SNIFFER ->
-							_sniffer.receive()
+						when (request.family()) {
+							Command.SNIFFER ->
+								_sniffer.response(messenger, request, status)
 
-						Command.WIRELESS ->
-							_wireless.receive()
+							Command.WIRELESS ->
+								_wireless.response(messenger, request, status)
 
-						Command.PINGER ->
-							_pinger.receive()
+							Command.PINGER ->
+								_pinger.response(messenger, request, status)
 
-						else ->
-							throw IllegalArgumentException("unknown family")
+							else ->
+								messenger.response(request, status)
+						}
 					}
+
+					Command.SNIFFER ->
+						_sniffer.receive()
+
+					Command.WIRELESS ->
+						_wireless.receive()
+
+					Command.PINGER ->
+						_pinger.receive()
+
+					else ->
+						throw IllegalArgumentException("unknown family")
 				}
-			}
-			catch (e: MessageInsufficientBufferException) {
-				// TODO: warn the activity and try a restart
-				android.util.Log.e("B", "backend fucked up");
 			}
 		}
 	}
