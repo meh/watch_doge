@@ -56,49 +56,7 @@ class Sniffer {
 	}
 
 	class Mod(backend: Backend): Module(backend) {
-		private val _subscribers: HashMap<Int, HashSet<Messenger>> = HashMap();
-
-		override fun receive() {
-			val id    = _unpacker.unpackInt();
-			val event = _unpacker.unpackInt();
-
-			when (event) {
-				Command.Event.Sniffer.PACKET ->
-					packet(id)
-			}
-		}
-
-		override fun response(messenger: Messenger, request: Request, status: Int) {
-			when (request.command()) {
-				Command.Sniffer.CREATE -> {
-					val id = _unpacker.unpackInt();
-
-					synchronized(_subscribers) {
-						_subscribers.put(id, HashSet());
-					}
-
-					messenger.response(request, status) {
-						it.putInt("id", id);
-					}
-				}
-
-				Command.Sniffer.FILTER -> {
-					if (status == Command.Sniffer.Error.INVALID_FILTER) {
-						val error = _unpacker.unpackString();
-
-						messenger.response(request, status) {
-							it.putString("reason", error);
-						}
-					}
-					else {
-						messenger.response(request, status)
-					}
-				}
-
-				else ->
-					messenger.response(request, status)
-			}
-		}
+		private val _map: HashMap<Int, HashSet<Messenger>> = HashMap();
 
 		override fun request(msg: Message): Boolean {
 			when (msg.command()) {
@@ -128,6 +86,124 @@ class Sniffer {
 			}
 
 			return true;
+		}
+
+		private fun create(msg: Message) {
+			var truncate = msg.getData().getInt("truncate");
+			var ip       = msg.getData().getString("ip")
+				?: address(wifiManager.getConnectionInfo().getIpAddress());
+
+			forward(msg) {
+				it.packInt(truncate);
+
+				if (ip != null) {
+					it.packString(ip);
+				}
+				else {
+					it.packNil();
+				}
+			}
+		}
+
+		private fun start(msg: Message) {
+			val id = msg.getData().getInt("id");
+
+			forward(msg) {
+				it.packInt(id);
+			}
+		}
+
+		private fun filter(msg: Message) {
+			val id     = msg.getData().getInt("id");
+			val filter = msg.getData().getString("filter");
+
+			forward(msg) {
+				it.packInt(id);
+
+				if (filter == null) {
+					it.packNil();
+				}
+				else {
+					it.packString(filter);
+				}
+			}
+		}
+
+		private fun stop(msg: Message) {
+			// TODO: uguu~
+		}
+
+		private fun destroy(msg: Message) {
+			// TODO: uguu~
+		}
+
+		private fun subscribe(msg: Message) {
+			val id = msg.getData().getInt("id");
+
+			synchronized(_map) {
+				if (!_map.containsKey(id)) {
+					response(msg, Command.Sniffer.Error.NOT_FOUND);
+				}
+				else {
+					_map.get(id)!!.add(msg.replyTo);
+					response(msg, Command.SUCCESS);
+				}
+			}
+		}
+
+		private fun unsubscribe(msg: Message) {
+			val id = msg.getData().getInt("id");
+
+			synchronized(_map) {
+				if (!_map.containsKey(id)) {
+					// TODO: send error
+				}
+				else {
+					_map.get(id)!!.remove(msg.replyTo);
+				}
+			}
+		}
+
+		override fun response(messenger: Messenger, request: Request, status: Int) {
+			when (request.command()) {
+				Command.Sniffer.CREATE -> {
+					val id = _unpacker.unpackInt();
+
+					synchronized(_map) {
+						_map.put(id, HashSet());
+					}
+
+					messenger.response(request, status) {
+						it.putInt("id", id);
+					}
+				}
+
+				Command.Sniffer.FILTER -> {
+					if (status == Command.Sniffer.Error.INVALID_FILTER) {
+						val error = _unpacker.unpackString();
+
+						messenger.response(request, status) {
+							it.putString("reason", error);
+						}
+					}
+					else {
+						messenger.response(request, status)
+					}
+				}
+
+				else ->
+					messenger.response(request, status)
+			}
+		}
+
+		override fun receive() {
+			val id    = _unpacker.unpackInt();
+			val event = _unpacker.unpackInt();
+
+			when (event) {
+				Command.Event.Sniffer.PACKET ->
+					packet(id)
+			}
 		}
 
 		private fun packet(id: Int) {
@@ -183,9 +259,9 @@ class Sniffer {
 
 			packet.putParcelableArrayList("layers", layers);
 
-			synchronized(_subscribers) {
-				if (_subscribers.containsKey(id)) {
-					_subscribers.get(id)?.retainAll {
+			synchronized(_map) {
+				if (_map.containsKey(id)) {
+					_map.get(id)?.retainAll {
 						try {
 							it.send(message);
 							true
@@ -194,82 +270,6 @@ class Sniffer {
 							false
 						}
 					}
-				}
-			}
-		}
-
-		private fun create(msg: Message) {
-			var truncate = msg.getData().getInt("truncate");
-			var ip       = msg.getData().getString("ip")
-				?: address(wifiManager.getConnectionInfo().getIpAddress());
-
-			forward(msg) {
-				it.packInt(truncate);
-
-				if (ip != null) {
-					it.packString(ip);
-				}
-				else {
-					it.packNil();
-				}
-			}
-		}
-
-		private fun start(msg: Message) {
-			val id = msg.getData().getInt("id");
-
-			forward(msg) {
-				it.packInt(id);
-			}
-		}
-
-		private fun filter(msg: Message) {
-			val id     = msg.getData().getInt("id");
-			val filter = msg.getData().getString("filter");
-
-			forward(msg) {
-				it.packInt(id);
-
-				if (filter == null) {
-					it.packNil();
-				}
-				else {
-					it.packString(filter);
-				}
-			}
-		}
-
-		private fun stop(msg: Message) {
-			// TODO: uguu~
-		}
-
-		private fun destroy(msg: Message) {
-			// TODO: uguu~
-		}
-
-		private fun subscribe(msg: Message) {
-			val id = msg.getData().getInt("id");
-
-			synchronized(_subscribers) {
-				if (!_subscribers.containsKey(id)) {
-					response(msg, Command.Sniffer.Error.NOT_FOUND);
-				}
-				else {
-					_subscribers.get(id)!!.add(msg.replyTo);
-					response(msg, Command.SUCCESS);
-				}
-			}
-		}
-
-		private fun unsubscribe(msg: Message) {
-			val id = msg.getData().getInt("id");
-
-			synchronized(_subscribers) {
-				if (!_subscribers.containsKey(id)) {
-					// TODO: send error
-				}
-				else {
-					_subscribers.get(id)!!.remove(msg.replyTo);
 				}
 			}
 		}
