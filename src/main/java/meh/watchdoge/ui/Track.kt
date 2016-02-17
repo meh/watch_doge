@@ -24,15 +24,16 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.TextView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TableLayout;
 
 class Track(): ProgressFragment(R.layout.track) {
 	override fun load(view: View, bundle: Bundle?) {
 		val ping = Ping(getContext()).tap {
-			it.addTo(view.find<ViewGroup>(R.id.ping));
+			it.appendTo(view.find<ViewGroup>(R.id.ping));
 		};
 
 		val traceroute = Traceroute(getContext()).tap {
-			it.addTo(view.find<ViewGroup>(R.id.traceroute));
+			it.appendTo(view.find<ViewGroup>(R.id.traceroute));
 		};
 
 		backend() success { conn ->
@@ -59,32 +60,74 @@ class Track(): ProgressFragment(R.layout.track) {
 	}
 
 	class Ping(context: Context): Component(context, R.layout.track_ping) {
-		private var id                         = 0;
-		private var subscriber: ISubscription? = null;
+		companion object {
+			fun trip(time: Long): String {
+				return when {
+					time > 1000000 ->
+						"%ds".format(time / 100000)
+
+					time > 1000 ->
+						"%dms".format(time / 1000)
+
+					else ->
+						"%dμs".format(time)
+				};
+			}
+		}
+
+		fun colorForLoss(loss: Float): Int {
+			return when {
+				loss > 60 ->
+					colorFor(R.color.failure);
+
+				loss > 30 ->
+					colorFor(R.color.warning);
+
+				else ->
+					colorFor(R.color.success);
+			}
+		}
+
+		fun colorForTrip(trip: Long): Int {
+			return when {
+				trip > 300000 ->
+					colorFor(R.color.failure);
+
+				trip > 150000 ->
+					colorFor(R.color.warning);
+
+				else ->
+					colorFor(R.color.success);
+			}
+		}
+
+		private var _id                         = 0;
+		private var _subscriber: ISubscription? = null;
+		private var _error                      = 0;
 
 		fun connect(conn: Connection) {
 			onStart {
 				start();
 
-				if (id == 0) {
+				if (_id == 0) {
 					conn.request { pinger { create(target()) } } bind {
-						id = it.bundle().getInt("id");
+						_id = it.bundle().getInt("id");
 
 						conn.subscribe {
-							pinger(id) {
+							pinger(_id) {
 								promiseOnUi {
 									update(it as Pinger.Event)
 								}
 							}
 						}
 					} then {
-						subscriber = it;
+						_subscriber = it;
 					}
 				}
 				else {
 					Promise.of(0)
 				} bind {
-					conn.request { pinger(id) { start() } }
+					conn.request { pinger(_id) { start() } }
 				} successUi {
 					ok()
 				} failUi {
@@ -93,7 +136,7 @@ class Track(): ProgressFragment(R.layout.track) {
 			}
 
 			onStop {
-				conn.request { pinger(id) { stop() } } successUi {
+				conn.request { pinger(_id) { stop() } } successUi {
 					stop()
 				} failUi {
 					error(it)
@@ -101,15 +144,15 @@ class Track(): ProgressFragment(R.layout.track) {
 			}
 
 			onClear {
-				subscriber?.unsubscribe();
+				_subscriber?.unsubscribe();
 
-				if (id != 0) {
-					conn.request { pinger(id) { destroy() } }
+				if (_id != 0) {
+					conn.request { pinger(_id) { destroy() } }
 				}
 				else {
 					Promise.of(0)
 				} then {
-					id = 0
+					_id = 0
 				} successUi {
 					clear()
 				} failUi {
@@ -119,11 +162,11 @@ class Track(): ProgressFragment(R.layout.track) {
 		}
 
 		fun onStart(block: Ping.() -> Unit) {
-			view.find<Button>(R.id.start).onClick {
+			view().find<Button>(R.id.start).onClick {
 				this.block();
 			}
 
-			view.find<EditText>(R.id.target).onEditorAction { view, id, event ->
+			view().find<EditText>(R.id.target).onEditorAction { view, id, event ->
 				if (id == EditorInfo.IME_ACTION_SEARCH) {
 					this.block();
 					true
@@ -135,41 +178,37 @@ class Track(): ProgressFragment(R.layout.track) {
 		}
 
 		fun onStop(block: Ping.() -> Unit) {
-			view.find<Button>(R.id.stop).onClick {
+			view().find<Button>(R.id.stop).onClick {
 				this.block();
 			}
 		}
 
 		fun onClear(block: Ping.() -> Unit) {
-			view.find<Button>(R.id.clear).onClick {
+			view().find<Button>(R.id.clear).onClick {
 				this.block();
 			}
 		}
 
 		fun target(): String {
-			return view.find<EditText>(R.id.target).getText().toString().trim();
-		}
-
-		fun update(event: Pinger.Event) {
-			android.util.Log.d("UI", "PINGER/UPDATE: ${event}");
+			return view().find<EditText>(R.id.target).getText().toString().trim();
 		}
 
 		fun start() {
 			// edit
-			view.find<EditText>(R.id.target).disable();
+			view().find<EditText>(R.id.target).disable();
 
 			// button
-			view.find<View>(R.id.start).setVisibility(View.GONE);
-			view.find<View>(R.id.stop).setVisibility(View.VISIBLE);
+			view().find<View>(R.id.start).setVisibility(View.GONE);
+			view().find<View>(R.id.stop).setVisibility(View.VISIBLE);
 
 			// error
-			view.find<View>(R.id.error).setVisibility(View.GONE);
+			view().find<View>(R.id.error).setVisibility(View.GONE);
 
 			// progress
-			view.find<View>(R.id.progress).setVisibility(View.VISIBLE);
+			view().find<View>(R.id.progress).setVisibility(View.VISIBLE);
 
 			// container
-			view.find<View>(R.id.active).setVisibility(View.VISIBLE);
+			view().find<View>(R.id.active).setVisibility(View.VISIBLE);
 		}
 
 		fun error(err: Exception) {
@@ -191,72 +230,185 @@ class Track(): ProgressFragment(R.layout.track) {
 		}
 
 		fun error(text: String) {
-			id = 0;
+			_id = 0;
 
 			// button
-			view.find<View>(R.id.start).setVisibility(View.GONE);
-			view.find<View>(R.id.stop).setVisibility(View.GONE);
-			view.find<View>(R.id.clear).setVisibility(View.VISIBLE);
+			view().find<View>(R.id.start).setVisibility(View.GONE);
+			view().find<View>(R.id.stop).setVisibility(View.GONE);
+			view().find<View>(R.id.clear).setVisibility(View.VISIBLE);
+
+			// content
+			view().find<View>(R.id.ok).setVisibility(View.GONE);
 
 			// progress
-			view.find<View>(R.id.progress).setVisibility(View.GONE);
+			view().find<View>(R.id.progress).setVisibility(View.GONE);
 
 			// error
-			view.find<TextView>(R.id.error).tap {
+			view().find<TextView>(R.id.error).tap {
 				it.setText(text);
 				it.setVisibility(View.VISIBLE);
 			}
 
 			// container
-			view.find<View>(R.id.active).setVisibility(View.VISIBLE);
+			view().find<View>(R.id.active).setVisibility(View.VISIBLE);
 		}
 
 		fun ok() {
 			// error
-			view.find<View>(R.id.error).setVisibility(View.GONE);
+			view().find<View>(R.id.error).setVisibility(View.GONE);
 
 			// content
-			view.find<View>(R.id.ok).setVisibility(View.VISIBLE);
+			view().find<View>(R.id.ok).setVisibility(View.VISIBLE);
 		}
 
 		fun stop() {
 			// progress
-			view.find<View>(R.id.progress).setVisibility(View.GONE);
+			view().find<View>(R.id.progress).setVisibility(View.GONE);
 
 			// button
-			view.find<View>(R.id.stop).setVisibility(View.GONE);
-			view.find<View>(R.id.start).setVisibility(View.GONE);
-			view.find<View>(R.id.clear).setVisibility(View.VISIBLE);
+			view().find<View>(R.id.stop).setVisibility(View.GONE);
+			view().find<View>(R.id.start).setVisibility(View.GONE);
+			view().find<View>(R.id.clear).setVisibility(View.VISIBLE);
 		}
 
 		fun clear() {
 			// edit
-			view.find<EditText>(R.id.target).setText("");
-			view.find<EditText>(R.id.target).enable();
+			view().find<EditText>(R.id.target).setText("");
+			view().find<EditText>(R.id.target).enable();
 
 			// packets
-			view.find<TextView>(R.id.packet_sent).setText("0");
-			view.find<TextView>(R.id.packet_received).setText("0");
-			view.find<TextView>(R.id.packet_loss).setText("0%");
+			view().find<TextView>(R.id.packet_sent).setText("0");
+			view().find<TextView>(R.id.packet_received).setText("0");
+			view().find<TextView>(R.id.packet_loss).setText("0%");
 
-			// time
-			view.find<TextView>(R.id.time_minimum).setText("0ms");
-			view.find<TextView>(R.id.time_maximum).setText("0ms");
-			view.find<TextView>(R.id.time_average).setText("0ms");
+			// trip
+			view().find<View>(R.id.trip_stats).setVisibility(View.GONE);
+			view().find<TextView>(R.id.trip_minimum).setText("0ms");
+			view().find<TextView>(R.id.trip_maximum).setText("0ms");
+			view().find<TextView>(R.id.trip_average).setText("0ms");
 
 			// button
-			view.find<View>(R.id.start).setVisibility(View.VISIBLE);
-			view.find<View>(R.id.stop).setVisibility(View.GONE);
-			view.find<View>(R.id.clear).setVisibility(View.GONE);
+			view().find<View>(R.id.start).setVisibility(View.VISIBLE);
+			view().find<View>(R.id.stop).setVisibility(View.GONE);
+			view().find<View>(R.id.clear).setVisibility(View.GONE);
 
 			// progress
-			view.find<View>(R.id.progress).setVisibility(View.GONE);
+			view().find<View>(R.id.progress).setVisibility(View.GONE);
 
 			// error
-			view.find<View>(R.id.error).setVisibility(View.GONE);
+			view().find<View>(R.id.error).setVisibility(View.GONE);
 
 			// container
-			view.find<View>(R.id.active).setVisibility(View.GONE);
+			view().find<View>(R.id.active).setVisibility(View.GONE);
+
+			// entries
+			view().find<TableLayout>(R.id.entries_table).tap {
+				it.removeViews(2, 4);
+
+				for (i in 0 .. 3) {
+					it.setColumnCollapsed(i, false);
+				}
+			}
+
+			view().find<View>(R.id.entries).setVisibility(View.GONE);
+		}
+
+		fun update(event: Pinger.Event) {
+			when (event) {
+				is Pinger.Stats -> {
+					event.packet().tap { packet ->
+						view().find<TextView>(R.id.packet_sent).setText("${packet.sent}");
+						view().find<TextView>(R.id.packet_received).setText("${packet.received}");
+
+						view().find<TextView>(R.id.packet_loss).tap {
+							it.setText("${Math.round(packet.loss)}%");
+							it.setBackgroundColor(colorForLoss(packet.loss));
+						}
+					}
+
+					event.trip().tap { trip ->
+						if (trip.maximum != 0L) {
+							view().find<View>(R.id.trip_stats).setVisibility(View.VISIBLE);
+
+							view().find<TextView>(R.id.trip_minimum).setText(Ping.trip(trip.minimum));
+							view().find<TextView>(R.id.trip_maximum).setText(Ping.trip(trip.maximum));
+
+							view().find<TextView>(R.id.trip_average).tap {
+								it.setText(Ping.trip(trip.average));
+								it.setBackgroundColor(colorForTrip(trip.average));
+							}
+						}
+					}
+				}
+
+				is Pinger.Packet ->
+					entry(event)
+
+				is Pinger.Error ->
+					entry(event)
+			}
+		}
+
+		inner class Entry: Component {
+			constructor(context: Context)
+				: super(context, R.layout.track_ping_entry);
+
+			constructor(context: Context, view: View)
+				: super(context, view);
+
+			fun update(event: Pinger.Entry) {
+				view().find<TextView>(R.id.source).setText(event.source());
+				view().find<TextView>(R.id.ttl).setText("${event.ttl()}");
+				view().find<TextView>(R.id.sequence).setText("${event.sequence()}");
+
+				when (event) {
+					is Pinger.Packet ->
+						view().find<TextView>(R.id.status).tap {
+							it.setText("${Ping.trip(event.trip())}");
+							it.setBackgroundColor(colorForTrip(event.trip()));
+						}
+
+					is Pinger.Error ->
+						view().find<TextView>(R.id.status).tap {
+							it.setText("${event.reason()}");
+							it.setBackgroundColor(colorFor(R.color.failure));
+						}
+				}
+			}
+		}
+
+		fun entry(event: Pinger.Entry) {
+			val container = view().find<TableLayout>(R.id.entries_table);
+			var entry: Entry;
+
+			view().find<View>(R.id.entries).setVisibility(View.VISIBLE);
+
+			if (container.getChildCount() < 6) {
+				entry = Entry(this);
+			}
+			else {
+				entry = Entry(this, container.getChildAt(5));
+				container.removeViewAt(5);
+			}
+
+			entry.update(event);
+			entry.addTo(container, 2);
+
+			if (event is Pinger.Error) {
+				_error = 4;
+
+				for (i in 0 .. 3) {
+					container.setColumnCollapsed(i, true);
+				}
+			}
+
+			if (_error == 0) {
+				for (i in 0 .. 3) {
+					container.setColumnCollapsed(i, false);
+				}
+			}
+
+			_error -= 1;
 		}
 	}
 

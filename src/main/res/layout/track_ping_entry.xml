@@ -1,0 +1,38 @@
+<TableRow xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:app="http://schemas.android.com/apk/res-auto"
+          xmlns:card_view="http://schemas.android.com/apk/res-auto">
+	<TextView android:id="@+id/source"
+		android:padding="4dp"
+		android:gravity="center"
+		android:background="@color/neutral" />
+
+	<TextView
+		android:layout_width="1dp"
+		android:layout_height="match_parent"
+		android:background="@color/card" />
+
+	<TextView android:id="@+id/ttl"
+		android:padding="4dp"
+		android:gravity="center"
+		android:background="@color/neutral" />
+
+	<TextView
+		android:layout_width="1dp"
+		android:layout_height="match_parent"
+		android:background="@color/card" />
+
+	<TextView android:id="@+id/sequence"
+		android:padding="4dp"
+		android:gravity="center"
+		android:background="@color/neutral" />
+
+	<TextView
+		android:layout_width="1dp"
+		android:layout_height="match_parent"
+		android:background="@color/card" />
+
+	<TextView android:id="@+id/status"
+		android:padding="4dp"
+		android:gravity="center"
+		android:background="@color/neutral" />
+</TableRow>
