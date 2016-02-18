@@ -20,10 +20,15 @@
 	<style name="Theme.WatchDoge" parent="Theme.AppCompat.NoActionBar">
 		<item name="colorPrimary">@color/primary</item>
 		<item name="colorAccent">@color/accent</item>
+		<item name="preferenceTheme">@style/Theme.WatchDoge.Preference</item>
 	</style>
 
 	<style name="Theme.WatchDoge.Toolbar" parent="ThemeOverlay.AppCompat.ActionBar">
 		<item name="android:background">@color/primary</item>
+	</style>
+
+	<style name="Theme.WatchDoge.Toolbar.Popup" parent="ThemeOverlay.AppCompat.ActionBar">
+		<item name="android:background">@color/card</item>
 	</style>
 
 	<style name="Theme.WatchDoge.Tab.Layout" parent="Widget.Design.TabLayout">
@@ -78,5 +83,9 @@
 	<style name="Theme.WatchDoge.Text.Error" parent="@android:style/TextAppearance.Widget.TextView">
 		<item name="android:textColor">@color/contrast</item>
 		<item name="android:background">@color/failure</item>
+	</style>
+
+	<style name="Theme.WatchDoge.Preference" parent="@style/Preference">
+
 	</style>
 </resources>
