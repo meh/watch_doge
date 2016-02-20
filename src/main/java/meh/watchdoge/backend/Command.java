@@ -10,6 +10,7 @@ final public class Command {
 	public static final int SNIFFER  = 1;
 	public static final int WIRELESS = 2;
 	public static final int PINGER   = 3;
+	public static final int TRACER   = 4;
 
 	final static public class Control {
 		public static final int PING  = 0;
@@ -21,6 +22,7 @@ final public class Command {
 		public static final int SNIFFER  = 0xBADB011;
 		public static final int WIRELESS = 0xBADB012;
 		public static final int PINGER   = 0xBADB013;
+		public static final int TRACER   = 0xBADB014;
 
 		final static public class Sniffer {
 			public static final int PACKET = 1;
@@ -34,6 +36,11 @@ final public class Command {
 			public static final int STATS  = 1;
 			public static final int PACKET = 2;
 			public static final int ERROR  = 3;
+		}
+
+		final static public class Tracer {
+			public static final int DONE = 1;
+			public static final int HOP  = 2;
 		}
 	}
 
@@ -67,6 +74,27 @@ final public class Command {
 	}
 
 	final static public class Pinger {
+		final static public class Error {
+			public static final int ALREADY_STARTED = 2;
+			public static final int NOT_STARTED     = 3;
+
+			public static final int ALREADY_EXISTS   = 4;
+			public static final int NOT_FOUND        = 5;
+			public static final int UNKNOWN_HOST     = 6;
+			public static final int SOCKET           = 7;
+			public static final int INVALID_INTERVAL = 8;
+		}
+
+		public static final int SUBSCRIBE   = 1;
+		public static final int UNSUBSCRIBE = 2;
+
+		public static final int CREATE  = 100;
+		public static final int START   = 101;
+		public static final int STOP    = 102;
+		public static final int DESTROY = 103;
+	}
+
+	final static public class Tracer {
 		final static public class Error {
 			public static final int ALREADY_STARTED = 2;
 			public static final int NOT_STARTED     = 3;

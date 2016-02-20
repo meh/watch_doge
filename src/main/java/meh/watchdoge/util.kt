@@ -133,3 +133,21 @@ fun Bundle.putValue(key: String, value: Value) {
 			throw MessageTypeException("unknown conversion")
 	}
 }
+
+fun String.toDuration(): Double {
+	val match = Regex("""(\d(?:\.\d+)?)(s|ms|us)?""").find(this.trim().toLowerCase());
+
+	if (match == null) {
+		return 0.0;
+	}
+
+	val value = match.groups.get(1)!!.value.toDouble();
+	val unit  = match.groups.get(2);
+
+	return when (unit?.value) {
+		"s"  -> value
+		"ms" -> value * 1000.0
+		"us" -> value * 1000000.0
+		else -> value
+	}
+}

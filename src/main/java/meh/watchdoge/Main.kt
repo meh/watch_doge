@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.os.Messenger;
 import android.os.Message;
 import android.content.Context;
+import android.preference.PreferenceManager;
 
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -41,6 +42,7 @@ import meh.watchdoge.ui.packet.Packet;
 class Main(): AppCompatActivity() {
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState);
+		PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
 		startKovenant();
 
 		setContentView(R.layout.app);

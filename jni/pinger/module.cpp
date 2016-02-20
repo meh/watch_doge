@@ -93,6 +93,14 @@ pinger::create(wd::receiver& recv, int request)
 	auto target   = recv.next().as<std::string>();
 	auto interval = recv.next().as<uint32_t>();
 
+	if (interval == 0) {
+		wd::response(wd::command::CONTROL, request, [](auto& packer) {
+			packer.pack(wd::command::pinger::error::INVALID_INTERVAL);
+		});
+
+		return;
+	}
+
 	std::unique_lock<std::shared_timed_mutex> lock(_mutex);
 	_map.emplace(std::piecewise_construct,
 		std::make_tuple(id),

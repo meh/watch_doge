@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.os.Message;
 import android.os.Messenger;
 
+import org.jetbrains.anko.*;
 import nl.komponents.kovenant.*;
 
 import meh.watchdoge.Request;
@@ -88,7 +89,14 @@ class Pinger {
 
 			forward(msg) {
 				it.packString(target);
-				it.packInt(interval);
+
+				if (interval == 0) {
+					it.packLong(Math.round(defaultSharedPreferences
+						.getString("ping_interval", "0").toDuration() * 1000.0));
+				}
+				else {
+					it.packInt(interval);
+				}
 			}
 		}
 

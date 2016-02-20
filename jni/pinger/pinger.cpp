@@ -300,10 +300,9 @@ namespace wd {
 	pinger::pinger(wd::creator<>* creator, int id, int request, std::string target, uint32_t interval)
 		: _id(id),
 		  _target(target),
+			_interval(interval),
 		  _queue(std::make_shared<queue<pinger::command>>(1))
 	{
-		_interval = interval ?: 1000;
-
 		_thread = std::thread(_loop, creator, _id, request, _target, _interval, _queue);
 		_thread.detach();
 	}

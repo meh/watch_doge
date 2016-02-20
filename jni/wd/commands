@@ -11,6 +11,7 @@ namespace wd {
 		const int SNIFFER  = 1;
 		const int WIRELESS = 2;
 		const int PINGER   = 3;
+		const int TRACER   = 4;
 
 		namespace control {
 			const int PING  = 0;
@@ -27,6 +28,11 @@ namespace wd {
 				const int STATS  = 1;
 				const int PACKET = 2;
 				const int ERROR  = 3;
+			}
+
+			namespace tracer {
+				const int DONE = 1;
+				const int HOP  = 2;
 			}
 		}
 
@@ -58,6 +64,24 @@ namespace wd {
 				const int NOT_FOUND      = 5;
 				const int UNKNOWN_HOST   = 6;
 				const int SOCKET         = 7;
+			}
+
+			const int CREATE  = 100;
+			const int START   = 101;
+			const int STOP    = 102;
+			const int DESTROY = 103;
+		}
+
+		namespace tracer {
+			namespace error {
+				const int ALREADY_STARTED = 2;
+				const int NOT_STARTED     = 3;
+
+				const int ALREADY_EXISTS   = 4;
+				const int NOT_FOUND        = 5;
+				const int UNKNOWN_HOST     = 6;
+				const int SOCKET           = 7;
+				const int INVALID_INTERVAL = 8;
 			}
 
 			const int CREATE  = 100;
