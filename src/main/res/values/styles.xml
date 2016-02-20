@@ -3,6 +3,7 @@
 	<color name="accent">#b21818</color>
 	<color name="content">#111111</color>
 	<color name="contrast">#ffffff</color>
+	<color name="darken">#80000000</color>
 
 	<color name="text">#ffffff</color>
 	<color name="text_hint">#999999</color>
@@ -20,15 +21,20 @@
 	<style name="Theme.WatchDoge" parent="Theme.AppCompat.NoActionBar">
 		<item name="colorPrimary">@color/primary</item>
 		<item name="colorAccent">@color/accent</item>
+
 		<item name="preferenceTheme">@style/Theme.WatchDoge.Preference</item>
+    <item name="alertDialogTheme">@style/Theme.WatchDoge.Dialog.Alert</item>
+		<item name="actionButtonStyle">@style/Theme.WatchDoge.Button</item>
 	</style>
 
 	<style name="Theme.WatchDoge.Toolbar" parent="ThemeOverlay.AppCompat.ActionBar">
 		<item name="android:background">@color/primary</item>
+		<item name="actionButtonStyle">@style/Theme.WatchDoge.Button</item>
 	</style>
 
 	<style name="Theme.WatchDoge.Toolbar.Popup" parent="ThemeOverlay.AppCompat.ActionBar">
 		<item name="android:background">@color/card</item>
+		<item name="actionButtonStyle">@style/Theme.WatchDoge.Button</item>
 	</style>
 
 	<style name="Theme.WatchDoge.Tab.Layout" parent="Widget.Design.TabLayout">
@@ -67,10 +73,6 @@
 		<item name="android:textSize">32dp</item>
 
 		<item name="android:background">@drawable/icon_button_background</item>
-
-		<item name="android:shadowDx">1</item>
-		<item name="android:shadowDy">1</item>
-		<item name="android:shadowRadius">9</item>
 	</style>
 
 	<style name="Theme.WatchDoge.Edit" parent="Widget.AppCompat.EditText">
@@ -85,7 +87,30 @@
 		<item name="android:background">@color/failure</item>
 	</style>
 
-	<style name="Theme.WatchDoge.Preference" parent="@style/Preference">
+	<style name="Theme.WatchDoge.Preference" parent="@style/PreferenceThemeOverlay">
+		<item name="android:background">@color/content</item>
+	</style>
 
+	<style name="Theme.WatchDoge.Dialog.Alert" parent="Theme.AppCompat.Dialog.Alert">
+		<item name="colorAccent">@color/contrast</item>
+		<item name="android:background">@color/card</item>
+
+		<item name="buttonBarNegativeButtonStyle">@style/Theme.WatchDoge.Button.Negative</item>
+		<item name="buttonBarPositiveButtonStyle">@style/Theme.WatchDoge.Button.Positive</item>
+	</style>
+
+	<style name="Theme.WatchDoge.Button" parent="Widget.AppCompat.Button.Borderless">
+		<item name="android:textColor">@drawable/button_color</item>
+		<item name="android:background">@drawable/button_background</item>
+	</style>
+
+	<style name="Theme.WatchDoge.Button.Positive" parent="Widget.AppCompat.Button.Borderless">
+		<item name="android:textColor">@drawable/button_positive_color</item>
+		<item name="android:background">@drawable/button_background</item>
+	</style>
+
+	<style name="Theme.WatchDoge.Button.Negative" parent="Widget.AppCompat.Button.Borderless">
+		<item name="android:textColor">@drawable/button_negative_color</item>
+		<item name="android:background">@drawable/button_background</item>
 	</style>
 </resources>
