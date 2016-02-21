@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string-array name="probe_type_entries">
+		<item>Historic UDP</item>
+		<item>ICMP</item>
+		<item>TCP</item>
+		<item>UDP</item>
+	</string-array>
+
+	<string-array name="probe_type_values">
+		<item>udp-historic</item>
+		<item>icmp</item>
+		<item>tcp</item>
+		<item>udp</item>
+	</string-array>
+</resources>

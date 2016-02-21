@@ -1,15 +1,26 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 	<PreferenceCategory android:title="TRACK/PING">
-		<EditTextPreference android:title="Interval"
-			android:summary="Between each ping."
+		<EditTextPreference android:key="ping_interval"
 			android:defaultValue="1s"
-			android:key="ping_interval" />
+			android:inputType="textNoSuggestions"
+			android:digits="0123456789.smu"
+			android:title="Interval"
+			android:summary="Between each ping." />
 	</PreferenceCategory>
 
 	<PreferenceCategory android:title="TRACK/TRACE">
-		<EditTextPreference android:title="Interval"
-			android:summary="Between each probe."
+		<ListPreference android:key="traceroute_probe_type"
+			android:defaultValue="icmp"
+			android:title="Probe"
+			android:summary="Type to send."
+			android:entries="@array/probe_type_entries"
+			android:entryValues="@array/probe_type_values" />
+
+		<EditTextPreference android:key="traceroute_interval"
 			android:defaultValue="5s"
-			android:key="traceroute_interval" />
+			android:inputType="textNoSuggestions"
+			android:digits="0123456789.smu"
+			android:title="Interval"
+			android:summary="Between each probe." />
 	</PreferenceCategory>
 </PreferenceScreen>
