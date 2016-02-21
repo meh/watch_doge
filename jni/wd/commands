@@ -64,6 +64,7 @@ namespace wd {
 				const int NOT_FOUND      = 5;
 				const int UNKNOWN_HOST   = 6;
 				const int SOCKET         = 7;
+				const int INVALID_INTERVAL = 8;
 			}
 
 			const int CREATE  = 100;
