@@ -27,11 +27,11 @@ import android.widget.TableLayout;
 
 class Track(): ProgressFragment(R.layout.track) {
 	override fun load(view: View, bundle: Bundle?) {
-		val ping = Ping(getContext()).tap {
+		val ping = Ping(ctx).tap {
 			it.appendTo(view.find<ViewGroup>(R.id.ping));
 		};
 
-		val traceroute = Traceroute(getContext()).tap {
+		val traceroute = Traceroute(ctx).tap {
 			it.appendTo(view.find<ViewGroup>(R.id.traceroute));
 		};
 
