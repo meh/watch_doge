@@ -22,7 +22,7 @@ android {
 		versionCode 1
 		versionName "1.0"
 
-		minSdkVersion 19
+		minSdkVersion 15
 		targetSdkVersion 23
 	}
 
@@ -50,7 +50,7 @@ repositories {
 dependencies {
 	compile 'org.jetbrains.kotlin:kotlin-stdlib:1.+'
 
-	compile 'org.jetbrains.anko:anko-sdk19:+'
+	compile 'org.jetbrains.anko:anko-sdk23:+'
 	compile 'org.jetbrains.anko:anko-support-v4:+'
 	compile 'org.jetbrains.anko:anko-appcompat-v7:+'
 
