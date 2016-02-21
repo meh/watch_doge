@@ -16,7 +16,6 @@ import meh.watchdoge.backend.Command;
 import meh.watchdoge.Response;
 
 import android.content.Context;
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import android.view.View;

@@ -7,12 +7,7 @@ import nl.komponents.kovenant.*;
 
 import android.os.Bundle;
 import meh.watchdoge.backend.Connection;
-
-import android.support.v4.app.Fragment;
-import android.view.LayoutInflater;
-import android.view.ViewGroup;
 import android.view.View;
-import android.widget.TextView;
 
 class Dig(): ProgressFragment(R.layout.dig) {
 	override fun load(view: View, bundle: Bundle?) {

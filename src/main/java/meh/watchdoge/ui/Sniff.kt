@@ -9,11 +9,8 @@ import nl.komponents.kovenant.ui.*;
 import android.os.Bundle;
 import meh.watchdoge.backend.Connection;
 
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
-import android.view.ViewGroup;
 import android.view.View;
-import android.widget.TextView;
 
 class Sniff: ProgressFragment(R.layout.sniff) {
 	override fun load(view: View, bundle: Bundle?) {

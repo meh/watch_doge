@@ -12,9 +12,7 @@ import meh.watchdoge.backend.Connection;
 import meh.watchdoge.Response;
 import meh.watchdoge.backend.Wireless;
 
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
-import android.view.ViewGroup;
 import android.view.View;
 import android.widget.TextView;
 
