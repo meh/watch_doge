@@ -16,6 +16,8 @@ import android.net.wifi.WifiInfo;
 import android.net.NetworkInfo;
 
 import meh.watchdoge.Request;
+import meh.watchdoge.response.build as buildResponse;
+import meh.watchdoge.response.Event.Wireless as EventBuilder;
 import meh.watchdoge.util.*;
 import meh.watchdoge.backend.util.*;
 import org.jetbrains.anko.*;
@@ -61,7 +63,7 @@ class Wireless {
 	}
 
 	class Mod(backend: Backend): Module(backend) {
-		private val _subscribers: HashSet<Messenger> = HashSet();
+		private val _list: HashSet<Messenger> = HashSet();
 
 		init {
 			backend.registerReceiver(Receiver(),
@@ -103,16 +105,16 @@ class Wireless {
 		}
 
 		private fun subscribe(req: Request) {
-			synchronized(_subscribers) {
-				_subscribers.add(req.origin());
+			synchronized(_list) {
+				_list.add(req.origin());
 			}
 
 			response(req, Command.SUCCESS);
 		}
 
 		private fun unsubscribe(req: Request) {
-			synchronized(_subscribers) {
-				_subscribers.remove(req.origin());
+			synchronized(_list) {
+				_list.remove(req.origin());
 			}
 
 			response(req, Command.SUCCESS);
@@ -160,24 +162,33 @@ class Wireless {
 			override fun onReceive(@Suppress("UNUSED_PARAMETER") context: Context, intent: Intent) {
 				when (intent.getAction()) {
 					WifiManager.NETWORK_STATE_CHANGED_ACTION -> {
-						val message = Message.obtain().tap {
-							it.what = Command.Event.WIRELESS;
-							it.arg1 = Command.Event.Wireless.STATUS;
-						};
-
-						status(message.getData());
-
-						synchronized(_subscribers) {
-							_subscribers.retainAll {
-								try {
-									it.send(message);
-									true
-								}
-								catch (e: RemoteException) {
-									false
-								}
+						send {
+							status {
+								status(it);
 							}
 						}
+					}
+				}
+			}
+		}
+
+		private fun send(body: EventBuilder.() -> Unit) {
+			var msg = buildResponse {
+				event {
+					wireless {
+						this.body();
+					}
+				}
+			}
+
+			synchronized(_list) {
+				_list.retainAll {
+					try {
+						it.send(msg);
+						true
+					}
+					catch (e: RemoteException) {
+						false
 					}
 				}
 			}

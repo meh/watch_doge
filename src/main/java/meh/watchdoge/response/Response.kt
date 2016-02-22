@@ -16,10 +16,10 @@ class Response: Builder {
 		type = next;
 	}
 
-//	fun event(body: Event.() -> Unit) {
-//		val next = Event();
-//		next.body();
-//
-//		type = next;
-//	}
+	fun event(body: Event.() -> Unit) {
+		val next = Event();
+		next.body();
+
+		type = next;
+	}
 }

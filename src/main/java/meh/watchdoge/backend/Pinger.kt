@@ -11,6 +11,8 @@ import org.jetbrains.anko.*;
 import nl.komponents.kovenant.*;
 
 import meh.watchdoge.Request;
+import meh.watchdoge.response.build as buildResponse;
+import meh.watchdoge.response.Event.Pinger as EventBuilder;
 import meh.watchdoge.util.*;
 
 import android.os.RemoteException;
@@ -187,69 +189,59 @@ class Pinger {
 		}
 
 		private fun stats(id: Int) {
-			val message = Message.obtain().tap {
-				it.what = Command.Event.PINGER;
-				it.arg1 = Command.Event.Pinger.STATS;
-				it.arg2 = id;
+			send(id) {
+				stats {
+					it.putParcelable("packet", Bundle().tap {
+						it.putLong("sent", _unpacker.unpackLong());
+						it.putLong("received", _unpacker.unpackLong());
+						it.putFloat("loss", _unpacker.unpackFloat());
+					});
+
+					it.putParcelable("trip", Bundle().tap {
+						it.putLong("minimum", _unpacker.unpackLong());
+						it.putLong("maximum", _unpacker.unpackLong());
+						it.putLong("average", _unpacker.unpackLong());
+					});
+				}
 			}
-
-			message.getData().tap {
-				it.putParcelable("packet", Bundle().tap {
-					it.putLong("sent", _unpacker.unpackLong());
-					it.putLong("received", _unpacker.unpackLong());
-					it.putFloat("loss", _unpacker.unpackFloat());
-				});
-
-				it.putParcelable("trip", Bundle().tap {
-					it.putLong("minimum", _unpacker.unpackLong());
-					it.putLong("maximum", _unpacker.unpackLong());
-					it.putLong("average", _unpacker.unpackLong());
-				});
-			}
-
-			send(id, message);
 		}
 
 		private fun packet(id: Int) {
-			val message = Message.obtain().tap {
-				it.what = Command.Event.PINGER;
-				it.arg1 = Command.Event.Pinger.PACKET;
-				it.arg2 = id;
+			send(id) {
+				packet {
+					it.putString("source", _unpacker.unpackString());
+					it.putInt("sequence", _unpacker.unpackInt());
+					it.putInt("ttl", _unpacker.unpackInt());
+					it.putLong("trip", _unpacker.unpackLong());
+				}
 			}
-
-			message.getData().tap {
-				it.putString("source", _unpacker.unpackString());
-				it.putInt("sequence", _unpacker.unpackInt());
-				it.putInt("ttl", _unpacker.unpackInt());
-				it.putLong("trip", _unpacker.unpackLong());
-			}
-
-			send(id, message);
 		}
 
 		private fun error(id: Int) {
-			val message = Message.obtain().tap {
-				it.what = Command.Event.PINGER;
-				it.arg1 = Command.Event.Pinger.ERROR;
-				it.arg2 = id;
+			send(id) {
+				error {
+					it.putString("source", _unpacker.unpackString());
+					it.putInt("sequence", _unpacker.unpackInt());
+					it.putInt("ttl", _unpacker.unpackInt());
+					it.putString("reason", _unpacker.unpackString());
+				}
 			}
-
-			message.getData().tap {
-				it.putString("source", _unpacker.unpackString());
-				it.putInt("sequence", _unpacker.unpackInt());
-				it.putInt("ttl", _unpacker.unpackInt());
-				it.putString("reason", _unpacker.unpackString());
-			}
-
-			send(id, message);
 		}
 
-		private fun send(id: Int, message: Message) {
+		private fun send(id: Int, body: EventBuilder.() -> Unit) {
+			var msg = buildResponse {
+				event {
+					pinger(id) {
+						this.body();
+					}
+				}
+			}
+
 			synchronized(_map) {
 				if (_map.containsKey(id)) {
 					_map.get(id)?.retainAll {
 						try {
-							it.send(message);
+							it.send(msg);
 							true
 						}
 						catch (e: RemoteException) {

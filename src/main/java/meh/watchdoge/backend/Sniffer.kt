@@ -12,6 +12,8 @@ import org.jetbrains.anko.*;
 import nl.komponents.kovenant.*;
 
 import meh.watchdoge.Request;
+import meh.watchdoge.response.build as buildResponse;
+import meh.watchdoge.response.Event.Sniffer as EventBuilder;
 import meh.watchdoge.util.*;
 import meh.watchdoge.backend.util.*;
 
@@ -208,63 +210,69 @@ class Sniffer {
 		}
 
 		private fun packet(id: Int) {
-			val message = Message.obtain().tap {
-				it.what = Command.Event.SNIFFER;
-				it.arg1 = Command.Event.Sniffer.PACKET;
-				it.arg2 = id;
+			send(id) {
+				packet {
+					it.putInt("id", _unpacker.unpackInt());
+
+					it.putParcelable("size", Bundle().tap {
+						it.putInt("original", _unpacker.unpackInt());
+						it.putInt("recorded", _unpacker.unpackInt());
+					});
+
+					it.putParcelable("timestamp", Bundle().tap {
+						it.putLong("sec",  _unpacker.unpackLong());
+						it.putLong("usec", _unpacker.unpackLong());
+					});
+
+					val layers: ArrayList<Bundle> = arrayListOf();
+
+					do {
+						val layer = _unpacker.unpackValue();
+
+						when {
+							layer.isStringValue() -> {
+								val size = _unpacker.unpackMapHeader();
+								val info = Bundle().tap {
+									it.putString("_", layer.asStringValue().asString());
+								}
+
+								for (i in 1 .. size) {
+									val name  = _unpacker.unpackString();
+									val value = _unpacker.unpackValue();
+
+									info.putValue(name, value);
+								}
+
+								layers.add(info);
+							}
+
+							layer.isBinaryValue() -> {
+								layers.add(Bundle().tap {
+									it.putByteArray("data", layer.asBinaryValue().asByteArray());
+								});
+							}
+						}
+					} while (!layer.isNilValue())
+
+					it.putParcelableArrayList("layers", layers);
+				}
 			}
+		}
 
-			val packet = message.getData();
-
-			packet.putInt("id", _unpacker.unpackInt());
-
-			packet.putParcelable("size", Bundle().tap {
-				packet.putInt("original", _unpacker.unpackInt());
-				packet.putInt("recorded", _unpacker.unpackInt());
-			});
-
-			packet.putParcelable("timestamp", Bundle().tap {
-				it.putLong("sec",  _unpacker.unpackLong());
-				it.putLong("usec", _unpacker.unpackLong());
-			});
-
-			val layers: ArrayList<Bundle> = arrayListOf();
-
-			do {
-				val layer = _unpacker.unpackValue();
-
-				when {
-					layer.isStringValue() -> {
-						val size = _unpacker.unpackMapHeader();
-						val info = Bundle().tap {
-							it.putString("_", layer.asStringValue().asString());
-						}
-
-						for (i in 1 .. size) {
-							val name  = _unpacker.unpackString();
-							val value = _unpacker.unpackValue();
-
-							info.putValue(name, value);
-						}
-
-						layers.add(info);
-					}
-
-					layer.isBinaryValue() -> {
-						layers.add(Bundle().tap {
-							it.putByteArray("data", layer.asBinaryValue().asByteArray());
-						});
+		private fun send(id: Int, body: EventBuilder.() -> Unit) {
+			var msg = buildResponse {
+				event {
+					sniffer(id) {
+						this.body();
 					}
 				}
-			} while (!layer.isNilValue())
-
-			packet.putParcelableArrayList("layers", layers);
+			}
 
 			synchronized(_map) {
 				if (_map.containsKey(id)) {
 					_map.get(id)?.retainAll {
 						try {
-							it.send(message);
+							it.send(msg);
 							true
 						}
 						catch (e: RemoteException) {
