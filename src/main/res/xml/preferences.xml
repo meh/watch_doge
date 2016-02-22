@@ -1,4 +1,12 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+	<PreferenceCategory android:title="SNIFF">
+		<EditTextPreference android:key="sniff_truncate"
+			android:defaultValue="65535"
+			android:inputType="number"
+			android:title="Truncate"
+			android:summary="The packets at the given length." />
+	</PreferenceCategory>
+
 	<PreferenceCategory android:title="TRACK/PING">
 		<EditTextPreference android:key="ping_interval"
 			android:defaultValue="1s"
@@ -15,6 +23,12 @@
 			android:summary="Type to send."
 			android:entries="@array/probe_type_entries"
 			android:entryValues="@array/probe_type_values" />
+
+		<EditTextPreference android:key="traceroute_hops"
+			android:defaultValue="30"
+			android:inputType="number"
+			android:title="Hops"
+			android:summary="To go through." />
 
 		<EditTextPreference android:key="traceroute_interval"
 			android:defaultValue="5s"
