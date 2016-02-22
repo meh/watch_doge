@@ -10,7 +10,7 @@ open class Command(command: Int): Builder {
 	}
 }
 
-open class WithId(id: Int, command: Int): Command(command) {
+open class CommandWithId(id: Int, command: Int): Command(command) {
 	val id = id;
 
 	override fun build(msg: Message) {

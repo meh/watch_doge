@@ -54,10 +54,10 @@ class Sniffer(id: Int?): Family(C.SNIFFER) {
 		}
 	}
 
-	class Start(id: Int): WithId(id, C.Sniffer.START);
-	class Stop(id: Int): WithId(id, C.Sniffer.STOP);
+	class Start(id: Int): CommandWithId(id, C.Sniffer.START);
+	class Stop(id: Int): CommandWithId(id, C.Sniffer.STOP);
 
-	class Filter(id: Int, filter: String?): WithId(id, C.Sniffer.FILTER) {
+	class Filter(id: Int, filter: String?): CommandWithId(id, C.Sniffer.FILTER) {
 		val filter = filter;
 
 		override fun build(msg: Message) {
@@ -70,6 +70,6 @@ class Sniffer(id: Int?): Family(C.SNIFFER) {
 	}
 
 	class List(): Command(C.Sniffer.LIST);
-	class Subscribe(id: Int): WithId(id, C.Sniffer.SUBSCRIBE);
-	class Unsubscribe(id: Int): WithId(id, C.Sniffer.UNSUBSCRIBE);
+	class Subscribe(id: Int): CommandWithId(id, C.Sniffer.SUBSCRIBE);
+	class Unsubscribe(id: Int): CommandWithId(id, C.Sniffer.UNSUBSCRIBE);
 }

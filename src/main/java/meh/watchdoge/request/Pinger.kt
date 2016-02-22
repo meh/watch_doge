@@ -52,11 +52,11 @@ class Pinger(id: Int?): Family(C.PINGER) {
 		}
 	}
 
-	class Destroy(id: Int): WithId(id, C.Pinger.DESTROY);
+	class Destroy(id: Int): CommandWithId(id, C.Pinger.DESTROY);
 
-	class Start(id: Int): WithId(id, C.Pinger.START);
-	class Stop(id: Int): WithId(id, C.Pinger.STOP);
+	class Start(id: Int): CommandWithId(id, C.Pinger.START);
+	class Stop(id: Int): CommandWithId(id, C.Pinger.STOP);
 
-	class Subscribe(id: Int): WithId(id, C.Pinger.SUBSCRIBE);
-	class Unsubscribe(id: Int): WithId(id, C.Pinger.UNSUBSCRIBE);
+	class Subscribe(id: Int): CommandWithId(id, C.Pinger.SUBSCRIBE);
+	class Unsubscribe(id: Int): CommandWithId(id, C.Pinger.UNSUBSCRIBE);
 }
