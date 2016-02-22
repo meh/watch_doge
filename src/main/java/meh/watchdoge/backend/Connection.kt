@@ -4,8 +4,6 @@ import java.util.ArrayDeque;
 
 import meh.watchdoge.util.*;
 import meh.watchdoge.Response;
-import meh.watchdoge.response.isResponse;
-import meh.watchdoge.response.into;
 import meh.watchdoge.request.Request;
 
 import java.util.HashMap;
@@ -85,7 +83,7 @@ class Connection(context: Context, ready: (Connection) -> Unit) {
 		override fun handleMessage(msg: Message) {
 			when {
 				msg.isResponse() -> {
-					val response = msg.into();
+					val response = msg.intoResponse();
 					val promise  = synchronized(_requests) { _requests.remove() };
 
 					if (response.isSuccess()) {

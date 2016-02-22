@@ -16,6 +16,38 @@ inline fun<T: Any, R> T.tap(tap: (T) -> R): T {
   return this
 }
 
+fun Message.isRequest(): Boolean {
+	return this.what == 0xBADB01 && this.replyTo != null;
+}
+
+fun Message.isResponse(): Boolean {
+	return origin() == 0xBADB01 && replyTo == null
+}
+
+fun Message.origin(): Int {
+	return what
+}
+
+fun Message.family(): Int {
+	return (arg1) and 0xff
+}
+
+fun Message.command(): Int {
+	return (arg1 shr 8) and 0xff
+}
+
+fun Message.status(): Int {
+	return (arg1 shr 16) and 0xff
+}
+
+fun Message.intoResponse(): meh.watchdoge.Response {
+	return meh.watchdoge.Response(family(), command(), status(), arg2, peekData());
+}
+
+fun Message.intoRequest(id: Int): meh.watchdoge.Request {
+	return meh.watchdoge.Request(id, family(), command(), arg2, this.peekData());
+}
+
 infix fun Messenger.to(other: Messenger): Pair<Messenger, Messenger> {
 	return Pair(this, other);
 }
@@ -29,12 +61,11 @@ fun Messenger.response(request: meh.watchdoge.Request, status: Int, body: ((Bund
 		return;
 	}
 
-	var msg = Message.obtain();
+	val msg = Message.obtain();
 
-	msg.what = status;
-	msg.arg1 = request.family();
-	msg.arg2 = request.command();
-	msg.obj  = request.bundle();
+	msg.what = 0xBADB01;
+	msg.arg1 = (status shl 16) and (request.command() shl 8) and request.family();
+	msg.arg2 = request.arg();
 
 	if (body != null) {
 		body(msg.getData());

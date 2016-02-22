@@ -1,16 +1,10 @@
 package meh.watchdoge.request;
 
-import meh.watchdoge.backend.Command;
+import meh.watchdoge.backend.Command as C;
 import android.os.Message;
 
-class Sniffer(id: Int?): Builder {
-	private          val _id = id;
-	private lateinit var _next: Builder;
-
-	override fun build(msg: Message) {
-		msg.arg1 = Command.SNIFFER;
-		_next.build(msg);
-	}
+class Sniffer(id: Int?): Family(C.SNIFFER) {
+	private val _id = id;
 
 	fun create() {
 		create() { }
@@ -20,30 +14,30 @@ class Sniffer(id: Int?): Builder {
 		val next = Create();
 		next.body();
 
-		_next = next;
+		command = next;
 	}
 
 	fun start() {
-		_next = Start(_id!!);
+		command = Start(_id!!);
 	}
 
 	fun filter(filter: String?) {
-		_next = Filter(_id!!, filter);
+		command = Filter(_id!!, filter);
 	}
 
 	fun subscribe() {
-		_next = Subscribe(_id!!);
+		command = Subscribe(_id!!);
 	}
 
 	fun unsubscribe() {
-		_next = Unsubscribe(_id!!);
+		command = Unsubscribe(_id!!);
 	}
 
 	fun list() {
-		_next = List();
+		command = List();
 	}
 
-	class Create(): As(Command.Sniffer.CREATE) {
+	class Create(): Command(C.Sniffer.CREATE) {
 		var ip:       String? = null;
 		var truncate: Int     = 0;
 
@@ -60,10 +54,10 @@ class Sniffer(id: Int?): Builder {
 		}
 	}
 
-	class Start(id: Int): WithId(id, Command.Sniffer.START);
-	class Stop(id: Int): WithId(id, Command.Sniffer.STOP);
+	class Start(id: Int): WithId(id, C.Sniffer.START);
+	class Stop(id: Int): WithId(id, C.Sniffer.STOP);
 
-	class Filter(id: Int, filter: String?): WithId(id, Command.Sniffer.FILTER) {
+	class Filter(id: Int, filter: String?): WithId(id, C.Sniffer.FILTER) {
 		val filter = filter;
 
 		override fun build(msg: Message) {
@@ -75,12 +69,7 @@ class Sniffer(id: Int?): Builder {
 		}
 	}
 
-	class Subscribe(id: Int): WithId(id, Command.Sniffer.SUBSCRIBE);
-	class Unsubscribe(id: Int): WithId(id, Command.Sniffer.UNSUBSCRIBE);
-
-	class List(): Builder {
-		override fun build(msg: Message) {
-			msg.arg2 = Command.Sniffer.LIST;
-		}
-	}
+	class List(): Command(C.Sniffer.LIST);
+	class Subscribe(id: Int): WithId(id, C.Sniffer.SUBSCRIBE);
+	class Unsubscribe(id: Int): WithId(id, C.Sniffer.UNSUBSCRIBE);
 }

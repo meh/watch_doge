@@ -36,15 +36,15 @@ class Track(): ProgressFragment(R.layout.track) {
 		};
 
 		backend() success { conn ->
-			conn.request { root() } successUi {
-				if (it.bundle().getBoolean("status")) {
+			conn.request { control { root() } } successUi {
+				if (it.bundle()!!.getBoolean("status")) {
 					view.find<View>(R.id.supported).setVisibility(View.VISIBLE);
 				}
 				else {
 					view.find<View>(R.id.unsupported).setVisibility(View.VISIBLE);
 				}
 			} bind {
-				if (it.bundle().getBoolean("status")) {
+				if (it.bundle()!!.getBoolean("status")) {
 					Promise.of(true)
 				}
 				else {
@@ -110,7 +110,7 @@ class Track(): ProgressFragment(R.layout.track) {
 
 				if (_id == 0) {
 					conn.request { pinger { create(target()) } } bind {
-						_id = it.bundle().getInt("id");
+						_id = it.bundle()!!.getInt("id");
 
 						conn.subscribe {
 							pinger(_id) {

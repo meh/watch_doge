@@ -3,25 +3,21 @@ package meh.watchdoge;
 import android.os.Bundle;
 import meh.watchdoge.backend.Command;
 
-class Response(status: Int, family: Int, command: Int, request: Bundle, bundle: Bundle) {
-	private val _status  = status;
+class Response(family: Int, command: Int, status: Int, arg: Int, bundle: Bundle?) {
 	private val _family  = family;
 	private val _command = command;
-	private val _request = request;
+	private val _status  = status;
+	private val _arg     = arg;
 	private val _bundle  = bundle;
 
-	fun status()  = _status;
 	fun family()  = _family;
 	fun command() = _command;
-	fun request() = _request;
+	fun status()  = _status;
+	fun arg()     = _arg;
 	fun bundle()  = _bundle;
 
 	fun isSuccess(): Boolean = status() == Command.SUCCESS;
 	fun isFailure(): Boolean = status() != Command.SUCCESS;
-
-	fun matches(family: Int, command: Int): Boolean {
-		return family() == family && command() == command;
-	}
 
 	fun exception(): Exception? {
 		return if (isFailure()) {
@@ -33,12 +29,12 @@ class Response(status: Int, family: Int, command: Int, request: Bundle, bundle: 
 	}
 
 	class Exception(res: Response) : java.lang.Exception() {
-		private val _response = res;
+		private val _r = res;
 
-		fun status()  = _response.status();
-		fun family()  = _response.family();
-		fun command() = _response.command();
-		fun request() = _response.request();
-		fun bundle()  = _response.bundle();
+		fun family()  = _r.family()
+		fun command() = _r.command()
+		fun status()  = _r.status()
+		fun arg()     = _r.arg()
+		fun bundle()  = _r.bundle()
 	}
 }

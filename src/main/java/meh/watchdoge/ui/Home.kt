@@ -19,10 +19,10 @@ import android.widget.TextView;
 class Home(): ProgressFragment(R.layout.home) {
 	override fun load(view: View, bundle: Bundle?) {
 		backend() success { conn ->
-			conn.request { root() } successUi {
-				root(view, it.bundle())
+			conn.request { control { root() } } successUi {
+				root(view, it.bundle()!!)
 			} then { conn.request { wireless { status() } } successUi {
-				wireless(view, Wireless.Status(it.bundle()))
+				wireless(view, Wireless.Status(it.bundle()!!))
 			} } always {
 				show()
 			}

@@ -16,7 +16,6 @@ import android.net.wifi.WifiInfo;
 import android.net.NetworkInfo;
 
 import meh.watchdoge.Request;
-import meh.watchdoge.request.command;
 import meh.watchdoge.util.*;
 import meh.watchdoge.backend.util.*;
 import org.jetbrains.anko.*;

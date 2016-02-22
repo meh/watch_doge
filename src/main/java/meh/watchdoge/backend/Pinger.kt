@@ -11,7 +11,6 @@ import org.jetbrains.anko.*;
 import nl.komponents.kovenant.*;
 
 import meh.watchdoge.Request;
-import meh.watchdoge.request.command;
 import meh.watchdoge.util.*;
 
 import android.os.RemoteException;

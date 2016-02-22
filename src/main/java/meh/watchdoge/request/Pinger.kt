@@ -1,16 +1,10 @@
 package meh.watchdoge.request;
 
-import meh.watchdoge.backend.Command;
+import meh.watchdoge.backend.Command as C;
 import android.os.Message;
 
-class Pinger(id: Int?): Builder {
-	private          val _id = id;
-	private lateinit var _next: Builder;
-
-	override fun build(msg: Message) {
-		msg.arg1 = Command.PINGER;
-		_next.build(msg);
-	}
+class Pinger(id: Int?): Family(C.PINGER) {
+	private val _id = id;
 
 	fun create(target: String) {
 		create(target) { }
@@ -20,30 +14,30 @@ class Pinger(id: Int?): Builder {
 		val next = Create(target);
 		next.body();
 
-		_next = next;
+		command = next;
 	}
 
 	fun start() {
-		_next = Start(_id!!);
+		command = Start(_id!!);
 	}
 
 	fun stop() {
-		_next = Stop(_id!!);
+		command = Stop(_id!!);
 	}
 
 	fun subscribe() {
-		_next = Subscribe(_id!!);
+		command = Subscribe(_id!!);
 	}
 
 	fun unsubscribe() {
-		_next = Unsubscribe(_id!!);
+		command = Unsubscribe(_id!!);
 	}
 
 	fun destroy() {
-		_next = Destroy(_id!!);
+		command = Destroy(_id!!);
 	}
 
-	class Create(target: String): As(Command.Pinger.CREATE) {
+	class Create(target: String): Command(C.Pinger.CREATE) {
 		var target   = target;
 		var interval = 0;
 
@@ -58,11 +52,11 @@ class Pinger(id: Int?): Builder {
 		}
 	}
 
-	class Destroy(id: Int): WithId(id, Command.Pinger.DESTROY);
+	class Destroy(id: Int): WithId(id, C.Pinger.DESTROY);
 
-	class Start(id: Int): WithId(id, Command.Pinger.START);
-	class Stop(id: Int): WithId(id, Command.Pinger.STOP);
+	class Start(id: Int): WithId(id, C.Pinger.START);
+	class Stop(id: Int): WithId(id, C.Pinger.STOP);
 
-	class Subscribe(id: Int): WithId(id, Command.Pinger.SUBSCRIBE);
-	class Unsubscribe(id: Int): WithId(id, Command.Pinger.UNSUBSCRIBE);
+	class Subscribe(id: Int): WithId(id, C.Pinger.SUBSCRIBE);
+	class Unsubscribe(id: Int): WithId(id, C.Pinger.UNSUBSCRIBE);
 }

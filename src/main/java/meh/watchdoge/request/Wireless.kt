@@ -1,25 +1,17 @@
 package meh.watchdoge.request;
 
-import meh.watchdoge.backend.Command;
-import android.os.Message;
+import meh.watchdoge.backend.Command as C;
 
-class Wireless(): Builder {
-	private lateinit var _next: Builder;
-
-	override fun build(msg: Message) {
-		msg.arg1 = Command.WIRELESS;
-		_next.build(msg);
-	}
-
+class Wireless(): Family(C.WIRELESS) {
 	fun status() {
-		_next = Status();
+		command = Status();
 	}
 
 	fun subscribe() {
-		_next = Subscribe();
+		command = Subscribe();
 	}
 
-	class Status(): As(Command.Wireless.STATUS);
-	class Subscribe(): As(Command.Wireless.SUBSCRIBE);
-	class Unsubscribe(): As(Command.Wireless.UNSUBSCRIBE);
+	class Status(): Command(C.Wireless.STATUS);
+	class Subscribe(): Command(C.Wireless.SUBSCRIBE);
+	class Unsubscribe(): Command(C.Wireless.UNSUBSCRIBE);
 }

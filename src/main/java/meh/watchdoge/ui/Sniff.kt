@@ -15,8 +15,8 @@ import android.view.View;
 class Sniff: ProgressFragment(R.layout.sniff) {
 	override fun load(view: View, bundle: Bundle?) {
 		backend() success { conn ->
-			conn.request { root() } successUi {
-				if (it.bundle().getBoolean("status")) {
+			conn.request { control { root() } } successUi {
+				if (it.bundle()!!.getBoolean("status")) {
 					view.find<View>(R.id.supported).setVisibility(View.VISIBLE);
 				}
 				else {

@@ -4,22 +4,25 @@ import android.os.Message;
 
 class Request(id: Int): Builder {
 	private          val _id = id;
-	private lateinit var _next: Builder;
+	private lateinit var family: Family;
 
 	override fun build(msg: Message) {
 		msg.what = _id;
-		_next.build(msg);
+		family.build(msg);
 	}
 
-	fun root() {
-		_next = Root();
+	fun control(body: Control.() -> Unit) {
+		val next = Control();
+		next.body();
+
+		family = next;
 	}
 
 	fun sniffer(id: Int?, body: Sniffer.() -> Unit) {
 		val next = Sniffer(id);
 		next.body();
 
-		_next = next;
+		family = next;
 	}
 
 	fun sniffer(body: Sniffer.() -> Unit) {
@@ -30,14 +33,14 @@ class Request(id: Int): Builder {
 		val next = Wireless();
 		next.body();
 
-		_next = next;
+		family = next;
 	}
 
 	fun pinger(id: Int?, body: Pinger.() -> Unit) {
 		val next = Pinger(id);
 		next.body();
 
-		_next = next;
+		family = next;
 	}
 
 	fun pinger(body: Pinger.() -> Unit) {

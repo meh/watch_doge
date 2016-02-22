@@ -12,7 +12,6 @@ import org.jetbrains.anko.*;
 import nl.komponents.kovenant.*;
 
 import meh.watchdoge.Request;
-import meh.watchdoge.request.command;
 import meh.watchdoge.util.*;
 import meh.watchdoge.backend.util.*;
 
@@ -106,7 +105,7 @@ class Sniffer {
 		}
 
 		private fun start(msg: Message) {
-			val id = msg.getData().getInt("id");
+			val id = msg.arg2;
 
 			forward(msg) {
 				it.packInt(id);
@@ -114,7 +113,7 @@ class Sniffer {
 		}
 
 		private fun filter(msg: Message) {
-			val id     = msg.getData().getInt("id");
+			val id     = msg.arg2;
 			val filter = msg.getData().getString("filter");
 
 			forward(msg) {
@@ -138,7 +137,7 @@ class Sniffer {
 		}
 
 		private fun subscribe(msg: Message) {
-			val id = msg.getData().getInt("id");
+			val id = msg.arg2;
 
 			synchronized(_map) {
 				if (!_map.containsKey(id)) {
@@ -152,7 +151,7 @@ class Sniffer {
 		}
 
 		private fun unsubscribe(msg: Message) {
-			val id = msg.getData().getInt("id");
+			val id = msg.arg2;
 
 			synchronized(_map) {
 				if (!_map.containsKey(id)) {

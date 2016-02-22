@@ -4,10 +4,6 @@ import meh.watchdoge.R;
 import meh.watchdoge.util.*;
 import meh.watchdoge.backend.util.address;
 import meh.watchdoge.Request;
-import meh.watchdoge.request.family;
-import meh.watchdoge.request.command;
-import meh.watchdoge.request.isRequest;
-import meh.watchdoge.request.into;
 
 import android.text.TextUtils;
 import java.util.HashMap;
@@ -68,7 +64,7 @@ public class Backend(): Service() {
 		};
 
 		try {
-			msg.replyTo?.response(msg.into(id), status, body);
+			msg.replyTo?.response(msg.intoRequest(id), status, body);
 		}
 		catch (e: RemoteException) { }
 
@@ -78,7 +74,7 @@ public class Backend(): Service() {
 	fun forward(msg: Message, body: (MessagePacker) -> Unit): Int {
 		val id = synchronized(_requests) {
 			_request += 1;
-			_requests.put(_request, Pair(msg.replyTo, msg.into(_request)));
+			_requests.put(_request, Pair(msg.replyTo, msg.intoRequest(_request)));
 			_request
 		}
 
