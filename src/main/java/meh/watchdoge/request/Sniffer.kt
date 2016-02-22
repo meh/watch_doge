@@ -14,27 +14,27 @@ class Sniffer(id: Int?): Family(C.SNIFFER) {
 		val next = Create();
 		next.body();
 
-		command = next;
+		_command = next;
 	}
 
 	fun start() {
-		command = Start(_id!!);
+		_command = Start(_id!!);
 	}
 
 	fun filter(filter: String?) {
-		command = Filter(_id!!, filter);
+		_command = Filter(_id!!, filter);
 	}
 
 	fun subscribe() {
-		command = Subscribe(_id!!);
+		_command = Subscribe(_id!!);
 	}
 
 	fun unsubscribe() {
-		command = Unsubscribe(_id!!);
+		_command = Unsubscribe(_id!!);
 	}
 
 	fun list() {
-		command = List();
+		_command = List();
 	}
 
 	class Create(): Command(C.Sniffer.CREATE) {

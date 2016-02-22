@@ -14,27 +14,27 @@ class Pinger(id: Int?): Family(C.PINGER) {
 		val next = Create(target);
 		next.body();
 
-		command = next;
+		_command = next;
 	}
 
 	fun start() {
-		command = Start(_id!!);
+		_command = Start(_id!!);
 	}
 
 	fun stop() {
-		command = Stop(_id!!);
+		_command = Stop(_id!!);
 	}
 
 	fun subscribe() {
-		command = Subscribe(_id!!);
+		_command = Subscribe(_id!!);
 	}
 
 	fun unsubscribe() {
-		command = Unsubscribe(_id!!);
+		_command = Unsubscribe(_id!!);
 	}
 
 	fun destroy() {
-		command = Destroy(_id!!);
+		_command = Destroy(_id!!);
 	}
 
 	class Create(target: String): Command(C.Pinger.CREATE) {

@@ -4,11 +4,11 @@ import meh.watchdoge.backend.Command as C;
 
 class Wireless(): Family(C.WIRELESS) {
 	fun status() {
-		command = Status();
+		_command = Status();
 	}
 
 	fun subscribe() {
-		command = Subscribe();
+		_command = Subscribe();
 	}
 
 	class Status(): Command(C.Wireless.STATUS);
