@@ -4,6 +4,7 @@ import meh.watchdoge.R;
 import meh.watchdoge.util.*;
 import meh.watchdoge.backend.util.address;
 import meh.watchdoge.Request;
+import meh.watchdoge.response.Control;
 
 import android.text.TextUtils;
 import java.util.HashMap;
@@ -57,31 +58,31 @@ public class Backend(): Service() {
 		return _unpacker;
 	}
 
-	fun response(msg: Message, status: Int, body: ((Bundle) -> Unit)? = null): Int {
+	fun response(req: Request, status: Int, body: (Control.() -> Unit)? = null): Int {
 		val id = synchronized(_requests) {
 			_request += 1;
 			_request
 		};
 
 		try {
-			msg.replyTo?.response(msg.intoRequest(id), status, body);
+			req.origin().response(req.id(id), status, body);
 		}
 		catch (e: RemoteException) { }
 
 		return id;
 	}
 
-	fun forward(msg: Message, body: (MessagePacker) -> Unit): Int {
+	fun forward(req: Request, body: (MessagePacker) -> Unit): Int {
 		val id = synchronized(_requests) {
 			_request += 1;
-			_requests.put(_request, Pair(msg.replyTo, msg.intoRequest(_request)));
+			_requests.put(_request, Pair(req.origin(), req.id(_request)));
 			_request
 		}
 
 		synchronized(_packer) {
 			_packer.packInt(id);
-			_packer.packInt(msg.family());
-			_packer.packInt(msg.command());
+			_packer.packInt(req.family());
+			_packer.packInt(req.command());
 
 			body(_packer);
 
@@ -158,12 +159,14 @@ public class Backend(): Service() {
 				return;
 			}
 
+			val req = msg.intoRequest(0xBADB01);
+
 			val handled = when (msg.family()) {
 				Command.CONTROL -> {
 					when (msg.command()) {
 						Command.Control.ROOT -> {
-							response(msg, Command.SUCCESS) {
-								it.putBoolean("status", _root);
+							response(req, Command.SUCCESS) {
+								arg = if (_root) { 1 } else { 0 };
 							}
 
 							true
@@ -175,20 +178,20 @@ public class Backend(): Service() {
 				}
 
 				Command.SNIFFER ->
-					_sniffer.request(msg)
+					_sniffer.request(req)
 
 				Command.WIRELESS ->
-					_wireless.request(msg)
+					_wireless.request(req)
 
 				Command.PINGER ->
-					_pinger.request(msg)
+					_pinger.request(req)
 				
 				else ->
 					false
 			};
 
 			if (!handled) {
-				response(msg, Command.UNKNOWN)
+				response(req, Command.UNKNOWN)
 				super.handleMessage(msg);
 			}
 		}

@@ -1,7 +1,9 @@
 package meh.watchdoge.backend;
 
-import meh.watchdoge.request.Request;
+import meh.watchdoge.Request;
+import meh.watchdoge.request.Request as RequestBuilder;
 import meh.watchdoge.Response;
+import meh.watchdoge.response.Control;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -25,22 +27,22 @@ abstract class Module(backend: Backend): ContextWrapper(backend.getApplicationCo
 		_unpacker = backend.unpacker();
 	}
 
-	fun response(msg: Message, status: Int, body: ((Bundle) -> Unit)? = null): Int {
-		return _backend.response(msg, status, body);
+	fun response(req: Request, status: Int, body: (Control.() -> Unit)? = null): Int {
+		return _backend.response(req, status, body);
 	}
 
-	fun forward(msg: Message, body: (MessagePacker) -> Unit): Int {
-		return _backend.forward(msg, body);
+	fun forward(req: Request, body: (MessagePacker) -> Unit): Int {
+		return _backend.forward(req, body);
 	}
 
 	abstract fun receive();
-	abstract fun response(messenger: Messenger, request: meh.watchdoge.Request, status: Int);
-	abstract fun request(msg: Message): Boolean;
+	abstract fun response(messenger: Messenger, req: Request, status: Int);
+	abstract fun request(req: Request): Boolean;
 
 	abstract class Connection(conn: meh.watchdoge.backend.Connection) {
 		protected val _connection = conn;
 
-		fun request(body: Request.() -> Unit): Promise<Response, Response.Exception> {
+		fun request(body: RequestBuilder.() -> Unit): Promise<Response, Response.Exception> {
 			return _connection.request(body);
 		}
 

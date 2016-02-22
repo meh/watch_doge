@@ -8,8 +8,14 @@ import org.msgpack.value.Value;
 import org.msgpack.value.ValueType;
 import org.msgpack.core.MessageTypeException;
 
-import meh.watchdoge.request.Request;
-import meh.watchdoge.request.build;
+import meh.watchdoge.Request;
+import meh.watchdoge.request.Request as RequestBuilder;
+import meh.watchdoge.request.build as buildRequest;
+
+import meh.watchdoge.Response;
+import meh.watchdoge.response.Response as ResponseBuilder;
+import meh.watchdoge.response.Control;
+import meh.watchdoge.response.build as buildResponse;
 
 inline fun<T: Any, R> T.tap(tap: (T) -> R): T {
   tap(this)
@@ -40,38 +46,38 @@ fun Message.status(): Int {
 	return (arg1 shr 16) and 0xff
 }
 
-fun Message.intoResponse(): meh.watchdoge.Response {
-	return meh.watchdoge.Response(family(), command(), status(), arg2, peekData());
+fun Message.intoResponse(): Response {
+	return Response(family(), command(), status(), arg2, peekData());
 }
 
-fun Message.intoRequest(id: Int): meh.watchdoge.Request {
-	return meh.watchdoge.Request(id, family(), command(), arg2, this.peekData());
+fun Message.intoRequest(id: Int = 0): Request {
+	return Request(id, family(), command(), arg2, peekData(), replyTo!!);
 }
 
 infix fun Messenger.to(other: Messenger): Pair<Messenger, Messenger> {
 	return Pair(this, other);
 }
 
-fun Pair<Messenger, Messenger>.request(body: Request.() -> Unit) {
-	this.first.send(build(body).tap { it.replyTo = this.second });
+fun Pair<Messenger, Messenger>.request(body: RequestBuilder.() -> Unit) {
+	this.first.send(buildRequest(body).tap { it.replyTo = this.second });
 }
 
-fun Messenger.response(request: meh.watchdoge.Request, status: Int, body: ((Bundle) -> Unit)? = null) {
+fun Messenger.response(request: Request, result: Int, body: (Control.() -> Unit)? = null) {
 	if (request.id() == 0) {
 		return;
 	}
 
-	val msg = Message.obtain();
+	this.send(buildResponse {
+		control {
+			family  = request.family()
+			command = request.command()
+			status  = result
 
-	msg.what = 0xBADB01;
-	msg.arg1 = (status shl 16) and (request.command() shl 8) and request.family();
-	msg.arg2 = request.arg();
-
-	if (body != null) {
-		body(msg.getData());
-	}
-
-	this.send(msg);
+			if (body != null) {
+				this.body();
+			}
+		}
+	})
 }
 
 fun Bundle.putValue(key: String, value: Value) {

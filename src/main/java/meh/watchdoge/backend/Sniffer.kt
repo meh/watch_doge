@@ -57,28 +57,28 @@ class Sniffer {
 	class Mod(backend: Backend): Module(backend) {
 		private val _map: HashMap<Int, HashSet<Messenger>> = HashMap();
 
-		override fun request(msg: Message): Boolean {
-			when (msg.command()) {
+		override fun request(req: Request): Boolean {
+			when (req.command()) {
 				Command.Sniffer.CREATE ->
-					create(msg)
+					create(req)
 
 				Command.Sniffer.START ->
-					start(msg)
+					start(req)
 
 				Command.Sniffer.FILTER ->
-					filter(msg)
+					filter(req)
 
 				Command.Sniffer.STOP ->
-					stop(msg)
+					stop(req)
 
 				Command.Sniffer.DESTROY ->
-					destroy(msg)
+					destroy(req)
 
 				Command.Sniffer.SUBSCRIBE ->
-					subscribe(msg)
+					subscribe(req)
 
 				Command.Sniffer.UNSUBSCRIBE ->
-					unsubscribe(msg)
+					unsubscribe(req)
 
 				else ->
 					return false
@@ -87,12 +87,12 @@ class Sniffer {
 			return true;
 		}
 
-		private fun create(msg: Message) {
-			var truncate = msg.getData().getInt("truncate");
-			var ip       = msg.getData().getString("ip")
+		private fun create(req: Request) {
+			var truncate = req.bundle()!!.getInt("truncate");
+			var ip       = req.bundle()!!.getString("ip")
 				?: address(wifiManager.getConnectionInfo().getIpAddress());
 
-			forward(msg) {
+			forward(req) {
 				it.packInt(truncate);
 
 				if (ip != null) {
@@ -104,19 +104,19 @@ class Sniffer {
 			}
 		}
 
-		private fun start(msg: Message) {
-			val id = msg.arg2;
+		private fun start(req: Request) {
+			val id = req.arg();
 
-			forward(msg) {
+			forward(req) {
 				it.packInt(id);
 			}
 		}
 
-		private fun filter(msg: Message) {
-			val id     = msg.arg2;
-			val filter = msg.getData().getString("filter");
+		private fun filter(req: Request) {
+			val id     = req.arg();
+			val filter = req.bundle()!!.getString("filter");
 
-			forward(msg) {
+			forward(req) {
 				it.packInt(id);
 
 				if (filter == null) {
@@ -128,43 +128,43 @@ class Sniffer {
 			}
 		}
 
-		private fun stop(msg: Message) {
+		private fun stop(req: Request) {
 			// TODO: uguu~
 		}
 
-		private fun destroy(msg: Message) {
+		private fun destroy(req: Request) {
 			// TODO: uguu~
 		}
 
-		private fun subscribe(msg: Message) {
-			val id = msg.arg2;
+		private fun subscribe(req: Request) {
+			val id = req.arg();
 
 			synchronized(_map) {
 				if (!_map.containsKey(id)) {
-					response(msg, Command.Sniffer.Error.NOT_FOUND);
+					response(req, Command.Sniffer.Error.NOT_FOUND);
 				}
 				else {
-					_map.get(id)!!.add(msg.replyTo);
-					response(msg, Command.SUCCESS);
+					_map.get(id)!!.add(req.origin());
+					response(req, Command.SUCCESS);
 				}
 			}
 		}
 
-		private fun unsubscribe(msg: Message) {
-			val id = msg.arg2;
+		private fun unsubscribe(req: Request) {
+			val id = req.arg();
 
 			synchronized(_map) {
 				if (!_map.containsKey(id)) {
 					// TODO: send error
 				}
 				else {
-					_map.get(id)!!.remove(msg.replyTo);
+					_map.get(id)!!.remove(req.origin());
 				}
 			}
 		}
 
-		override fun response(messenger: Messenger, request: Request, status: Int) {
-			when (request.command()) {
+		override fun response(messenger: Messenger, req: Request, status: Int) {
+			when (req.command()) {
 				Command.Sniffer.CREATE -> {
 					val id = _unpacker.unpackInt();
 
@@ -172,8 +172,8 @@ class Sniffer {
 						_map.put(id, HashSet());
 					}
 
-					messenger.response(request, status) {
-						it.putInt("id", id);
+					messenger.response(req, status) {
+						arg = id
 					}
 				}
 
@@ -181,17 +181,19 @@ class Sniffer {
 					if (status == Command.Sniffer.Error.INVALID_FILTER) {
 						val error = _unpacker.unpackString();
 
-						messenger.response(request, status) {
-							it.putString("reason", error);
+						messenger.response(req, status) {
+							bundle {
+								it.putString("reason", error);
+							}
 						}
 					}
 					else {
-						messenger.response(request, status)
+						messenger.response(req, status)
 					}
 				}
 
 				else ->
-					messenger.response(request, status)
+					messenger.response(req, status)
 			}
 		}
 

@@ -72,16 +72,16 @@ class Wireless {
 			// uguu~
 		}
 
-		override fun request(msg: Message): Boolean {
-			when (msg.command()) {
+		override fun request(req: Request): Boolean {
+			when (req.command()) {
 				Command.Wireless.STATUS ->
-					status(msg)
+					status(req)
 
 				Command.Wireless.SUBSCRIBE ->
-					subscribe(msg)
+					subscribe(req)
 
 				Command.Wireless.UNSUBSCRIBE ->
-					unsubscribe(msg)
+					unsubscribe(req)
 				
 				else ->
 					return false
@@ -90,30 +90,32 @@ class Wireless {
 			return true;
 		}
 
-		override fun response(messenger: Messenger, request: Request, status: Int) {
+		override fun response(messenger: Messenger, req: Request, status: Int) {
 			// uguu~
 		}
 
-		private fun status(msg: Message) {
-			response(msg, Command.SUCCESS) {
-				status(it)
+		private fun status(req: Request) {
+			response(req, Command.SUCCESS) {
+				bundle {
+					status(it)
+				}
 			}
 		}
 
-		private fun subscribe(msg: Message) {
+		private fun subscribe(req: Request) {
 			synchronized(_subscribers) {
-				_subscribers.add(msg.replyTo);
+				_subscribers.add(req.origin());
 			}
 
-			response(msg, Command.SUCCESS);
+			response(req, Command.SUCCESS);
 		}
 
-		private fun unsubscribe(msg: Message) {
+		private fun unsubscribe(req: Request) {
 			synchronized(_subscribers) {
-				_subscribers.remove(msg.replyTo);
+				_subscribers.remove(req.origin());
 			}
 
-			response(msg, Command.SUCCESS);
+			response(req, Command.SUCCESS);
 		}
 
 		private fun status(res: Bundle) {

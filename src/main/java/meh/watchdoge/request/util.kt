@@ -25,7 +25,6 @@ open class Family(family: Int): Builder {
 
 	override fun build(msg: Message) {
 		msg.arg1 = msg.arg1 or family;
-
 		command.build(msg);
 	}
 }

@@ -20,7 +20,7 @@ class Home(): ProgressFragment(R.layout.home) {
 	override fun load(view: View, bundle: Bundle?) {
 		backend() success { conn ->
 			conn.request { control { root() } } successUi {
-				root(view, it.bundle()!!)
+				root(view, it.arg() == 1)
 			} then { conn.request { wireless { status() } } successUi {
 				wireless(view, Wireless.Status(it.bundle()!!))
 			} } always {
@@ -39,8 +39,8 @@ class Home(): ProgressFragment(R.layout.home) {
 		}
 	}
 
-	private fun root(view: View, res: Bundle) {
-		if (res.getBoolean("status")) {
+	private fun root(view: View, state: Boolean) {
+		if (state) {
 			view.find<TextView>(R.id.whoami).tap {
 				it.setBackgroundColor(colorFor(R.color.success));
 				it.setText("root");

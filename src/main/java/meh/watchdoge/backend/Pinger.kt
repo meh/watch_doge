@@ -55,25 +55,25 @@ class Pinger {
 	class Mod(backend: Backend): Module(backend) {
 		private val _map: HashMap<Int, HashSet<Messenger>> = HashMap();
 
-		override fun request(msg: Message): Boolean {
-			when (msg.command()) {
+		override fun request(req: Request): Boolean {
+			when (req.command()) {
 				Command.Pinger.CREATE ->
-					create(msg)
+					create(req)
 
 				Command.Pinger.START ->
-					start(msg)
+					start(req)
 
 				Command.Pinger.STOP ->
-					stop(msg)
+					stop(req)
 
 				Command.Pinger.DESTROY ->
-					destroy(msg)
+					destroy(req)
 
 				Command.Pinger.SUBSCRIBE ->
-					subscribe(msg)
+					subscribe(req)
 
 				Command.Pinger.UNSUBSCRIBE ->
-					unsubscribe(msg)
+					unsubscribe(req)
 
 				else ->
 					return false;
@@ -82,11 +82,11 @@ class Pinger {
 			return true;
 		}
 
-		private fun create(msg: Message) {
-			var target   = msg.getData().getString("target");
-			var interval = msg.getData().getInt("interval");
+		private fun create(req: Request) {
+			var target   = req.bundle()!!.getString("target");
+			var interval = req.bundle()!!.getInt("interval");
 
-			forward(msg) {
+			forward(req) {
 				it.packString(target);
 
 				if (interval == 0) {
@@ -99,60 +99,60 @@ class Pinger {
 			}
 		}
 
-		private fun start(msg: Message) {
-			val id = msg.getData().getInt("id");
+		private fun start(req: Request) {
+			val id = req.arg();
 
-			forward(msg) {
+			forward(req) {
 				it.packInt(id);
 			}
 		}
 
-		private fun stop(msg: Message) {
-			val id = msg.getData().getInt("id");
+		private fun stop(req: Request) {
+			val id = req.arg();
 
-			forward(msg) {
+			forward(req) {
 				it.packInt(id);
 			}
 		}
 
-		private fun destroy(msg: Message) {
-			val id = msg.getData().getInt("id");
+		private fun destroy(req: Request) {
+			val id = req.arg();
 
-			forward(msg) {
+			forward(req) {
 				it.packInt(id);
 			}
 		}
 
-		private fun subscribe(msg: Message) {
-			val id = msg.getData().getInt("id");
+		private fun subscribe(req: Request) {
+			val id = req.arg();
 
 			synchronized(_map) {
 				if (!_map.containsKey(id)) {
-					response(msg, Command.Pinger.Error.NOT_FOUND);
+					response(req, Command.Pinger.Error.NOT_FOUND);
 				}
 				else {
-					_map.get(id)!!.add(msg.replyTo);
-					response(msg, Command.SUCCESS);
+					_map.get(id)!!.add(req.origin());
+					response(req, Command.SUCCESS);
 				}
 			}
 		}
 
-		private fun unsubscribe(msg: Message) {
-			val id = msg.getData().getInt("id");
+		private fun unsubscribe(req: Request) {
+			val id = req.arg();
 
 			synchronized(_map) {
 				if (_map.containsKey(id)) {
-					_map.get(id)!!.add(msg.replyTo);
-					response(msg, Command.SUCCESS);
+					_map.get(id)!!.add(req.origin());
+					response(req, Command.SUCCESS);
 				}
 				else {
-					response(msg, Command.Pinger.Error.NOT_FOUND);
+					response(req, Command.Pinger.Error.NOT_FOUND);
 				}
 			}
 		}
 
-		override fun response(messenger: Messenger, request: Request, status: Int) {
-			when (request.command()) {
+		override fun response(messenger: Messenger, req: Request, status: Int) {
+			when (req.command()) {
 				Command.Pinger.CREATE -> {
 					val id = _unpacker.unpackInt();
 
@@ -160,13 +160,13 @@ class Pinger {
 						_map.put(id, HashSet());
 					}
 
-					messenger.response(request, status) {
-						it.putInt("id", id);
+					messenger.response(req, status) {
+						arg = id;
 					}
 				}
 
 				else ->
-					messenger.response(request, status)
+					messenger.response(req, status)
 			}
 		}
 
