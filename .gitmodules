@@ -13,6 +13,6 @@
 [submodule "jni/vendor/variant"]
 	path = jni/vendor/variant
 	url = https://github.com/mapbox/variant.git
-[submodule "vendor/paku"]
-	path = vendor/paku
+[submodule "jni/vendor/paku"]
+	path = jni/vendor/paku
 	url = https://github.com/meh/paku
