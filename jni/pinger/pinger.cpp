@@ -1,5 +1,7 @@
 #include "pinger"
-#include <packet/builder/icmp>
+
+#include <paku/builder/icmp>
+#include <paku/layer>
 
 namespace wd {
 	const uint32_t GRANULARITY = 100;
@@ -38,12 +40,14 @@ namespace wd {
 	void
 	_analyze(int id, struct stats* stats, size_t length, const uint8_t* buffer)
 	{
-		packet::ip ip(reinterpret_cast<const packet::ip::raw*>(buffer));
-		packet::icmp icmp(reinterpret_cast<const packet::icmp::raw*>(buffer + (ip.header() * 4)));
+		auto ip   = paku::layer<paku::packet::ip>(buffer, length);
+		auto icmp = ip.icmp();
 
-		switch (icmp.type()) {
-			case packet::icmp::ECHO_REPLY: {
-				auto echo = icmp.details<packet::icmp::echo>();
+		icmp.parent()->icmp();
+
+		switch (icmp->type()) {
+			case paku::packet::icmp::ECHO_REPLY: {
+				auto echo = icmp->details<paku::packet::icmp::echo>();
 
 				if (echo.identifier() != id) {
 					return;
@@ -77,31 +81,31 @@ namespace wd {
 				wd::response(command::PINGER, id, [&](auto& packer) {
 					packer.pack(command::event::pinger::PACKET);
 
-					packer.pack(ip.source());
+					packer.pack(ip->source());
 					packer.pack(echo.sequence());
-					packer.pack(ip.ttl());
+					packer.pack(ip->ttl());
 					packer.pack(trip);
 				});
 
 				break;
 			}
 
-			case packet::icmp::DESTINATION_UNREACHABLE:
-			case packet::icmp::SOURCE_QUENCH:
-			case packet::icmp::TIME_EXCEEDED: {
-				auto previous = icmp.details<packet::icmp::previous>();
+			case paku::packet::icmp::DESTINATION_UNREACHABLE:
+			case paku::packet::icmp::SOURCE_QUENCH:
+			case paku::packet::icmp::TIME_EXCEEDED: {
+				auto previous = icmp->details<paku::packet::icmp::previous>();
 
-				if (previous.header().protocol() != packet::ip::ICMP) {
+				if (previous.header().protocol() != paku::packet::ip::ICMP) {
 					return;
 				}
 
-				packet::icmp prev(reinterpret_cast<const packet::icmp::raw*>(previous.data()));
+				paku::packet::icmp prev(reinterpret_cast<const paku::packet::icmp::raw*>(previous.data()));
 
-				if (prev.type() != packet::icmp::ECHO_REQUEST) {
+				if (prev.type() != paku::packet::icmp::ECHO_REQUEST) {
 					return;
 				}
 
-				auto echo = prev.details<packet::icmp::echo>();
+				auto echo = prev.details<paku::packet::icmp::echo>();
 
 				if (echo.identifier() != id) {
 					return;
@@ -110,17 +114,17 @@ namespace wd {
 				wd::response(command::PINGER, id, [&](auto& packer) {
 					packer.pack(command::event::pinger::ERROR);
 
-					packer.pack(ip.source());
+					packer.pack(ip->source());
 					packer.pack(echo.sequence());
-					packer.pack(ip.ttl());
+					packer.pack(ip->ttl());
 
-					switch (icmp.type()) {
-						case packet::icmp::DESTINATION_UNREACHABLE: {
-							if (auto string = to_string(icmp.code<packet::icmp::code::destination_unreachable>())) {
+					switch (icmp->type()) {
+						case paku::packet::icmp::DESTINATION_UNREACHABLE: {
+							if (auto string = paku::to_string(icmp->code<paku::packet::icmp::code::destination_unreachable>())) {
 								packer.pack(*string);
 							}
 							else {
-								packer.pack(*packet::to_string(icmp.type()));
+								packer.pack(*paku::to_string(icmp->type()));
 							}
 
 							break;
@@ -158,12 +162,12 @@ namespace wd {
 			return;
 		}
 
+		struct sockaddr_in to;
+		std::memcpy(&to.sin_addr, host->h_addr, sizeof(to.sin_addr));
+
 		creation->ok(id, request);
 
 		uint8_t buffer[60 + 76 + sizeof(struct timeval)] = { 0 };
-
-		struct sockaddr_in to;
-		std::memcpy(&to.sin_addr, host->h_addr, sizeof(to.sin_addr));
 
 		struct sockaddr_in from;
 		socklen_t          from_s;
@@ -274,7 +278,7 @@ namespace wd {
 						struct timeval now;
 						gettimeofday(&now, nullptr);
 
-						packet::builder::icmp builder;
+						paku::builder::icmp builder;
 						auto buffer = builder.echo().request()
 							.identifier(id)
 							.sequence(stats.sent)

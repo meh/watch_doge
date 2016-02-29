@@ -1,11 +1,12 @@
 #pragma once
 
 #include <wd/common>
-#include <packet/common>
 
 namespace wd {
 	class sniffer {
 		public:
+			typedef struct pcap_pkthdr header;
+
 			struct command {
 				int request;
 				int type;
@@ -33,9 +34,9 @@ namespace wd {
 
 				public:
 					uint32_t
-					add(const packet::header* header, const uint8_t* packet);
+					add(const sniffer::header* header, const uint8_t* packet);
 
-					std::optional<std::tuple<const packet::header*, const uint8_t*>>
+					std::optional<std::tuple<const sniffer::header*, const uint8_t*>>
 					get(uint32_t id);
 
 				private:
@@ -52,7 +53,7 @@ namespace wd {
 					uint32_t _offset;
 					uint32_t _truncate;
 
-					packet::header       _header;
+					sniffer::header       _header;
 					std::vector<uint8_t> _buffer;
 			};
 
@@ -64,7 +65,7 @@ namespace wd {
 			void filter(int request, std::optional<std::string> flt);
 			void stop(int request);
 
-			std::optional<std::tuple<const packet::header*, const uint8_t*>>
+			std::optional<std::tuple<const sniffer::header*, const uint8_t*>>
 			get(uint32_t id);
 
 		private:

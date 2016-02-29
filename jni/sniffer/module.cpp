@@ -74,6 +74,14 @@ sniffer::create(wd::receiver& recv, int request)
 	auto ip       = recv.next();
 	auto device   = std::string("any");
 
+	if (truncate == 0) {
+		wd::response(wd::command::CONTROL, request, [](auto& packer) {
+			packer.pack(wd::command::sniffer::error::INVALID_TRUNCATE);
+		});
+
+		return;
+	}
+
 	if (!ip.is_nil()) {
 		if (auto dev = wd::device::find(ip.as<std::string>())) {
 			device = *dev;
@@ -127,7 +135,7 @@ sniffer::get(wd::receiver& recv, int request, int id)
 		});
 
 		wd::response(wd::command::SNIFFER, id, [&](auto& packer) {
-			wd::packet::pack(packer, pid, std::get<0>(*packet), std::get<1>(*packet));
+//			wd::packet::pack(packer, pid, std::get<0>(*packet), std::get<1>(*packet));
 		});
 	}
 	else {

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <wd/common>
-#include <packet/common>
 
 namespace wd {
 	class pinger {

@@ -1,5 +1,4 @@
 #include "sniffer"
-#include <packet/ether>
 
 namespace wd {
 	static
@@ -130,7 +129,7 @@ namespace wd {
 
 					wd::response(command::SNIFFER, id, [&](auto& packer) {
 						packer.pack(command::event::sniffer::PACKET);
-						wd::packet::pack(packer, pid, &header, packet);
+						//wd::packet::pack(packer, pid, &header, packet);
 					});
 
 					break;
@@ -187,7 +186,7 @@ namespace wd {
 		});
 	}
 
-	std::optional<std::tuple<const packet::header*, const uint8_t*>>
+	std::optional<std::tuple<const sniffer::header*, const uint8_t*>>
 	sniffer::get(uint32_t id)
 	{
 		return _cache->get(id);
@@ -195,10 +194,9 @@ namespace wd {
 
 	sniffer::cache::cache(std::string path, int id, uint32_t truncate)
 		: _id(0),
+			_truncate(truncate),
 		  _offset(sizeof(sniffer::cache::header))
 	{
-		_truncate = truncate ?: 65535;
-
 		std::stringstream builder;
 
 		builder << path << "/sniffer." << id << ".pcap";
@@ -231,20 +229,20 @@ namespace wd {
 	}
 
 	uint32_t
-	sniffer::cache::add(const packet::header* header, const uint8_t* packet)
+	sniffer::cache::add(const sniffer::header* header, const uint8_t* packet)
 	{
-		uint32_t       id    = _id++;
-		packet::header entry = *header;
+		uint32_t        id    = _id++;
+		sniffer::header entry = *header;
 
 		if (entry.caplen > _truncate) {
 			entry.caplen = _truncate;
 		}
 
-		_osession.write(reinterpret_cast<const char*>(&entry), sizeof(packet::header));
+		_osession.write(reinterpret_cast<const char*>(&entry), sizeof(sniffer::header));
 		_osession.write(reinterpret_cast<const char*>(packet), entry.caplen);
 		_osession.flush();
 
-		_offset += sizeof(packet::header);
+		_offset += sizeof(sniffer::header);
 		_offset += entry.caplen;
 
 		_oindex.write(reinterpret_cast<const char*>(&_offset), 4);
@@ -253,7 +251,7 @@ namespace wd {
 		return id;
 	}
 
-	std::optional<std::tuple<const packet::header*, const uint8_t*>>
+	std::optional<std::tuple<const sniffer::header*, const uint8_t*>>
 	sniffer::cache::get(uint32_t id)
 	{
 		if (id > _id) {
@@ -266,13 +264,13 @@ namespace wd {
 		_iindex.read(reinterpret_cast<char*>(&offset), 4);
 
 		_isession.seekg(offset, std::fstream::beg);
-		_isession.read(reinterpret_cast<char*>(&_header), sizeof(packet::header));
+		_isession.read(reinterpret_cast<char*>(&_header), sizeof(sniffer::header));
 
 		_buffer.resize(_header.caplen);
 		_isession.read(reinterpret_cast<char*>(_buffer.data()), _header.caplen);
 
 		return std::make_tuple(
-			reinterpret_cast<const packet::header*>(&_header),
+			reinterpret_cast<const sniffer::header*>(&_header),
 			reinterpret_cast<const uint8_t*>(_buffer.data()));
 	}
 }
