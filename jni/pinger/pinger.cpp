@@ -99,7 +99,7 @@ namespace wd {
 					return;
 				}
 
-				paku::packet::icmp prev(reinterpret_cast<const paku::packet::icmp::raw*>(previous.data()));
+				paku::packet::icmp prev(previous.data());
 
 				if (prev.type() != paku::packet::icmp::ECHO_REQUEST) {
 					return;
@@ -282,7 +282,7 @@ namespace wd {
 						auto buffer = builder.echo().request()
 							.identifier(id)
 							.sequence(stats.sent)
-							.data(reinterpret_cast<uint8_t*>(&now), sizeof(now))
+							.data(&now, sizeof(now))
 							.build();
 
 						length = sendto(sock, buffer->whole(), buffer->total(),
