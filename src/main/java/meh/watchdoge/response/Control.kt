@@ -15,7 +15,7 @@ class Control: Builder {
 
 	override fun build(msg: Message) {
 		msg.what = 0xBADB01;
-		msg.arg1 = (status shl 16) and (command shl 8) and family;
+		msg.arg1 = (status shl 16) or (command shl 8) or family;
 		msg.arg2 = arg;
 
 		if (_bundle != null) {
