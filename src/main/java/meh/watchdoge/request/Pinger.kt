@@ -39,15 +39,15 @@ class Pinger(id: Int?): Family(C.PINGER) {
 
 	class Create(target: String): Command(C.Pinger.CREATE) {
 		var target   = target;
-		var interval = 0;
+		var interval = 0.0;
 
 		override fun build(msg: Message) {
 			super.build(msg);
 
 			msg.getData().putString("target", target);
 
-			if (interval != 0) {
-				msg.getData().putInt("interval", interval);
+			if (interval != 0.0) {
+				msg.getData().putDouble("interval", interval);
 			}
 		}
 	}

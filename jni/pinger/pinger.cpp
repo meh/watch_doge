@@ -1,6 +1,7 @@
 #include "pinger"
 
 #include <paku/builder/icmp>
+#include <paku/packet/limits>
 #include <paku/layer>
 
 namespace wd {
@@ -38,9 +39,8 @@ namespace wd {
 
 	static
 	void
-	_analyze(int id, struct stats* stats, size_t length, const uint8_t* buffer)
+	_analyze(int id, struct stats* stats, paku::layer<paku::packet::ip> ip)
 	{
-		auto ip   = paku::layer<paku::packet::ip>(buffer, length);
 		auto icmp = ip.icmp();
 
 		icmp.parent()->icmp();
@@ -142,9 +142,9 @@ namespace wd {
 
 	static
 	void
-	_loop(wd::creator<>* creation, int id, int request, std::string target, uint32_t interval, std::shared_ptr<queue<pinger::command>> queue)
+	_loop(wd::creator<>* creation, int id, int request, pinger::settings settings, std::shared_ptr<queue<pinger::command>> queue)
 	{
-		struct hostent* host = ::gethostbyname(target.c_str());
+		struct hostent* host = ::gethostbyname(settings.target.c_str());
 
 		if (host == NULL) {
 			creation->err(id, request, command::pinger::error::UNKNOWN_HOST);
@@ -167,7 +167,10 @@ namespace wd {
 
 		creation->ok(id, request);
 
-		uint8_t buffer[60 + 76 + sizeof(struct timeval)] = { 0 };
+		uint8_t buffer[
+			paku::packet::limits<paku::packet::ip>::max() +
+			paku::packet::limits<paku::packet::icmp>::max() +
+			sizeof(struct timeval)] = { 0 };
 
 		struct sockaddr_in from;
 		socklen_t          from_s;
@@ -246,15 +249,15 @@ namespace wd {
 					ssize_t  length = 0;
 					uint32_t sleep  = GRANULARITY;
 
-					if (slept + GRANULARITY > interval) {
-						sleep = interval - slept;
+					if (slept + GRANULARITY > settings.interval) {
+						sleep = settings.interval - slept;
 					}
 
 					length = recvfrom(sock, buffer, sizeof(buffer),
 						0, reinterpret_cast<struct sockaddr*>(&from), &from_s);
 
 					if (length >= 0) {
-						_analyze(id, &stats, length, buffer);
+						_analyze(id, &stats, paku::layer<paku::packet::ip>(buffer, length));
 
 						wd::socket::nonblocking(sock);
 						while (true) {
@@ -265,14 +268,14 @@ namespace wd {
 								break;
 							}
 
-							_analyze(id, &stats, length, buffer);
+							_analyze(id, &stats, paku::layer<paku::packet::ip>(buffer, length));
 						}
 						wd::socket::blocking(sock);
 					}
 
 					slept += GRANULARITY;
 
-					if (slept >= interval) {
+					if (slept >= settings.interval) {
 						slept = 0;
 
 						struct timeval now;
@@ -301,13 +304,11 @@ namespace wd {
 		}
 	}
 
-	pinger::pinger(wd::creator<>* creator, int id, int request, std::string target, uint32_t interval)
+	pinger::pinger(wd::creator<>* creator, int id, int request, pinger::settings settings)
 		: _id(id),
-		  _target(target),
-			_interval(interval),
 		  _queue(std::make_shared<queue<pinger::command>>(1))
 	{
-		_thread = std::thread(_loop, creator, _id, request, _target, _interval, _queue);
+		_thread = std::thread(_loop, creator, _id, request, settings, _queue);
 		_thread.detach();
 	}
 

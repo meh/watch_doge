@@ -86,17 +86,17 @@ class Pinger {
 
 		private fun create(req: Request) {
 			var target   = req.bundle()!!.getString("target");
-			var interval = req.bundle()!!.getInt("interval");
+			var interval = req.bundle()!!.getDouble("interval");
 
 			forward(req) {
 				it.packString(target);
 
-				if (interval == 0) {
+				if (interval == 0.0) {
 					it.packLong(Math.round(defaultSharedPreferences
 						.getString("ping_interval", "0").toDuration() * 1000.0));
 				}
 				else {
-					it.packInt(interval);
+					it.packLong(Math.round(interval * 1000.0));
 				}
 			}
 		}
@@ -158,8 +158,10 @@ class Pinger {
 				Command.Pinger.CREATE -> {
 					val id = _unpacker.unpackInt();
 
-					synchronized(_map) {
-						_map.put(id, HashSet());
+					if (status == Command.SUCCESS) {
+						synchronized(_map) {
+							_map.put(id, HashSet());
+						}
 					}
 
 					messenger.response(req, status) {

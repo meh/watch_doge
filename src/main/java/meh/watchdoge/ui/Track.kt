@@ -24,8 +24,24 @@ import android.widget.TextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TableLayout;
+import android.widget.LinearLayout;
 
 class Track(): ProgressFragment(R.layout.track) {
+	companion object {
+		fun trip(time: Long): String {
+			return when {
+				time > 1000000 ->
+					"%ds".format(time / 100000)
+
+				time > 1000 ->
+					"%dms".format(time / 1000)
+
+				else ->
+					"%dμs".format(time)
+			};
+		}
+	}
+
 	override fun load(view: View, bundle: Bundle?) {
 		val ping = Ping(ctx).tap {
 			it.appendTo(view.find<ViewGroup>(R.id.ping));
@@ -59,22 +75,7 @@ class Track(): ProgressFragment(R.layout.track) {
 	}
 
 	class Ping(context: Context): Component(context, R.layout.track_ping) {
-		companion object {
-			fun trip(time: Long): String {
-				return when {
-					time > 1000000 ->
-						"%ds".format(time / 100000)
-
-					time > 1000 ->
-						"%dms".format(time / 1000)
-
-					else ->
-						"%dμs".format(time)
-				};
-			}
-		}
-
-		fun colorForLoss(loss: Float): Int {
+		private fun colorForLoss(loss: Float): Int {
 			return when {
 				loss > 60 ->
 					colorFor(R.color.failure);
@@ -87,7 +88,7 @@ class Track(): ProgressFragment(R.layout.track) {
 			}
 		}
 
-		fun colorForTrip(trip: Long): Int {
+		private fun colorForTrip(trip: Long): Int {
 			return when {
 				trip > 300000 ->
 					colorFor(R.color.failure);
@@ -162,11 +163,13 @@ class Track(): ProgressFragment(R.layout.track) {
 
 		fun onStart(block: Ping.() -> Unit) {
 			view().find<Button>(R.id.start).onClick {
-				this.block();
+				if (!target().trim().isEmpty()) {
+					this.block();
+				}
 			}
 
 			view().find<EditText>(R.id.target).onEditorAction { view, id, event ->
-				if (id == EditorInfo.IME_ACTION_SEARCH) {
+				if (id == EditorInfo.IME_ACTION_SEARCH && !target().trim().isEmpty()) {
 					this.block();
 					true
 				}
@@ -329,11 +332,11 @@ class Track(): ProgressFragment(R.layout.track) {
 						if (trip.maximum != 0L) {
 							view().find<View>(R.id.trip_stats).setVisibility(View.VISIBLE);
 
-							view().find<TextView>(R.id.trip_minimum).setText(Ping.trip(trip.minimum));
-							view().find<TextView>(R.id.trip_maximum).setText(Ping.trip(trip.maximum));
+							view().find<TextView>(R.id.trip_minimum).setText(Track.trip(trip.minimum));
+							view().find<TextView>(R.id.trip_maximum).setText(Track.trip(trip.maximum));
 
 							view().find<TextView>(R.id.trip_average).tap {
-								it.setText(Ping.trip(trip.average));
+								it.setText(Track.trip(trip.average));
 								it.setBackgroundColor(colorForTrip(trip.average));
 							}
 						}
@@ -363,7 +366,7 @@ class Track(): ProgressFragment(R.layout.track) {
 				when (event) {
 					is Pinger.Packet ->
 						view().find<TextView>(R.id.status).tap {
-							it.setText("${Ping.trip(event.trip())}");
+							it.setText("${Track.trip(event.trip())}");
 							it.setBackgroundColor(colorForTrip(event.trip()));
 						}
 

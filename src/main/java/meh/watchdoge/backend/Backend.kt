@@ -236,7 +236,7 @@ public class Backend(): Service() {
 						_pinger.receive()
 
 					else ->
-						throw IllegalArgumentException("unknown family")
+						throw IllegalArgumentException("unknown family: ${family}")
 				}
 			}
 		}

@@ -10,8 +10,13 @@ namespace wd {
 				int type;
 			};
 
+			struct settings {
+				std::string target;
+				uint32_t    interval;
+			};
+
 		public:
-			pinger(creator<>* creator, int id, int request, std::string target, uint32_t interval);
+			pinger(creator<>* creator, int id, int request, struct settings settings);
 			~pinger();
 
 		public:
@@ -20,9 +25,7 @@ namespace wd {
 			void destroy(int request);
 
 		private:
-			int         _id;
-			std::string _target;
-			uint32_t    _interval;
+			int _id;
 
 			std::shared_ptr<queue<command>> _queue;
 			std::thread                     _thread;
